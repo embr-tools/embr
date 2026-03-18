@@ -10,7 +10,7 @@
 [![No Install](https://img.shields.io/badge/no%20install-runs%20in%20browser-blue)](#)
 [![Built with ethers.js](https://img.shields.io/badge/ethers.js-v6-purple)](#)
 
-[**→ Open Embr**](https://embr-tools.workers.dev) · [Report Bug](https://github.com/embr-tools/embr/issues) · [Request Feature](https://github.com/embr-tools/embr/issues)
+[**→ Open Embr**](https://embr.ledg.workers.dev) · [Report Bug](https://github.com/embr-tools/embr/issues) · [Request Feature](https://github.com/embr-tools/embr/issues)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## Use it
 
-**Embr lives at [`embr-tools.workers.dev`](https://embr-tools.workers.dev)**
+**Embr lives at [`embr.ledg.workers.dev`](https://embr.ledg.workers.dev)**
 
 Open it in your browser. No install, no account, no setup.
 
@@ -31,16 +31,16 @@ If Embr becomes part of your daily workflow, you can set it as your browser's ne
 **Chrome**
 1. Go to `chrome://settings/onStartup`
 2. Select **Open a specific page or set of pages**
-3. Click **Add a new page** → paste `https://embr-tools.workers.dev`
+3. Click **Add a new page** → paste `https://embr.ledg.workers.dev`
 
 **Firefox**
 1. Go to `about:preferences#home`
 2. Set **Homepage and new windows** → **Custom URLs**
-3. Paste `https://embr-tools.workers.dev`
+3. Paste `https://embr.ledg.workers.dev`
 
 **Safari**
 1. Preferences → **General**
-2. Set **Homepage** → `https://embr-tools.workers.dev`
+2. Set **Homepage** → `https://embr.ledg.workers.dev`
 
 **Brave / Arc / Edge** — same as Chrome steps above.
 
