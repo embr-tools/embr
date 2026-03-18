@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<!-- Sanctum v2 — rebuilt -->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sanctum — Offline HD Wallet</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#111111"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── TOKENS ───────────────────────────────── */
+:root{
+  --page:#111111;
+  --s1:#1a1a1a;
+  --s2:#222222;
+  --s3:#2a2a2a;
+  --hov:#252525;
+  --bd:rgba(255,255,255,.07);
+  --bd2:rgba(255,255,255,.12);
+  --sep:rgba(255,255,255,.05);
+  --t1:#e8e8e8;
+  --t2:#a0a0a0;
+  --t3:#585858;
+  --acc:#10b981;
+  --acc1:rgba(16,185,129,.1);
+  --acc2:rgba(16,185,129,.06);
+  --red:#e05252;
+  --amb:#c49a3c;
+  --ui:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --r:4px;--r2:6px;--r3:8px;--r4:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;background:var(--page);color:var(--t1);
+  font-family:var(--ui);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px;}
+
+/* ─── TOPBAR ───────────────────────────────── */
+.topbar{
+  height:44px;background:var(--s1);border-bottom:1px solid var(--sep);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+  position:sticky;top:0;z-index:50;
+}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-icon{width:22px;height:22px;flex-shrink:0;}
+.logo-name{font-size:14px;font-weight:600;letter-spacing:-.2px;color:var(--t1);}
+.logo-sep{width:1px;height:16px;background:var(--sep);}
+.logo-sub{font-size:11px;color:var(--t3);}
+.tb-space{flex:1;}
+.offline-badge{
+  padding:3px 9px;border-radius:var(--r);font-size:11px;font-family:var(--mono);
+  font-weight:500;background:var(--acc1);color:var(--acc);
+  border:1px solid rgba(16,185,129,.18);
+}
+.install-btn{
+  display:none;padding:4px 11px;border-radius:var(--r2);font-size:12px;font-weight:500;
+  cursor:pointer;background:var(--s2);color:var(--t2);border:1px solid var(--bd2);
+  font-family:var(--ui);transition:all .14s;
+}
+.install-btn:hover{background:var(--s3);color:var(--t1);}
+
+/* ─── NAV TABS ────────────────────────────── */
+.nav{
+  display:flex;padding:0 20px;background:var(--s1);
+  border-bottom:1px solid var(--sep);
+}
+.ntab{
+  padding:10px 0;margin-right:20px;font-size:13px;font-weight:500;
+  cursor:pointer;color:var(--t3);border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .14s,border-color .14s;user-select:none;
+}
+.ntab:hover{color:var(--t2);}
+.ntab.on{color:var(--t1);border-bottom-color:var(--t1);}
+
+/* ─── PAGE CONTAINER ─────────────────────── */
+.page{max-width:1040px;margin:0 auto;padding:32px 20px 80px;}
+
+/* ─── PANEL ANIMATION ──────────────────────── */
+.tp{display:none;}
+.tp.on{display:block;animation:fadein .2s var(--ease);}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── NOTICES ─────────────────────────────── */
+.notice{
+  display:flex;gap:10px;padding:11px 14px;border-radius:var(--r2);
+  font-size:13px;line-height:1.6;margin-bottom:20px;align-items:flex-start;
+}
+.n-warn{background:rgba(224,82,82,.05);border:1px solid rgba(224,82,82,.1);color:rgba(224,82,82,.85);}
+.n-info{background:var(--acc2);border:1px solid rgba(16,185,129,.1);color:rgba(16,185,129,.78);}
+.n-base{background:var(--s1);border:1px solid var(--bd);color:var(--t2);}
+.n-ico{flex-shrink:0;margin-top:1px;}
+
+/* ─── SECTION LABEL ───────────────────────── */
+.sl{
+  display:block;font-size:11px;font-weight:500;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:9px;
+}
+
+/* ─────────────────────────────────────────────
+   NOTION PROP-BLOCK  — the entire UI system
+   .pb  = prop block (border + radius container)
+   .pr  = prop row
+   .pk  = property key column
+   .pv  = property value column (holds inputs)
+   .pa  = prop action (right side buttons)
+───────────────────────────────────────────── */
+.pb{
+  border:1px solid var(--bd);border-radius:var(--r4);
+  background:var(--s1);overflow:hidden;margin-bottom:14px;
+}
+.pb:last-child{margin-bottom:0;}
+.pr{
+  display:flex;align-items:center;
+  border-bottom:1px solid var(--sep);min-height:38px;
+  transition:background .12s;
+}
+.pr:last-child{border-bottom:none;}
+.pr:hover{background:var(--hov);}
+.pk{
+  width:170px;flex-shrink:0;padding:9px 13px;
+  font-size:12px;color:var(--t3);
+  border-right:1px solid var(--sep);line-height:1.4;
+}
+.pv{flex:1;padding:9px 13px;font-size:12px;color:var(--t2);}
+/* inputs inside pv are transparent */
+.pv input,.pv select,.pv textarea{
+  background:transparent;border:none;outline:none;
+  color:var(--t1);font-family:var(--mono);font-size:12px;
+  width:100%;resize:none;
+}
+.pv input::placeholder,.pv textarea::placeholder{color:var(--t3);}
+.pv select{font-family:var(--ui);cursor:pointer;color:var(--t2);}
+.pv textarea{line-height:1.7;min-height:64px;padding-top:1px;}
+.pa{padding:0 10px;border-left:1px solid var(--sep);flex-shrink:0;}
+/* inline pv content (not an input) */
+.pv-content{flex:1;padding:9px 13px;font-size:12px;color:var(--t2);}
+
+/* ─── OPTION CHIPS ────────────────────────── */
+.ochips{display:flex;gap:5px;flex-wrap:wrap;}
+.oc{
+  padding:4px 11px;border-radius:var(--r);font-size:12px;
+  font-family:var(--mono);cursor:pointer;user-select:none;
+  background:var(--s2);color:var(--t3);border:1px solid var(--bd);
+  transition:all .12s;
+}
+.oc.on,.oc:hover{background:var(--s3);color:var(--t1);border-color:var(--bd2);}
+
+/* ─── MNEMONIC GRID ──────────────────────── */
+.mn-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.mn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+@media(max-width:560px){.mn-grid{grid-template-columns:repeat(3,1fr);}}
+
+.wc{
+  display:flex;align-items:center;gap:7px;padding:7px 10px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);
+  transition:background .15s,border-color .15s;
+  animation:wIn .24s var(--ease) backwards;
+}
+.wc:hover{background:var(--s2);border-color:var(--bd2);}
+@keyframes wIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.wnum{font-family:var(--mono);font-size:9px;color:var(--t3);min-width:16px;flex-shrink:0;}
+.wtext{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--t1);transition:all .2s var(--ease);}
+.wc.h .wtext{color:transparent;text-shadow:0 0 8px rgba(255,255,255,.13);}
+
+/* ─── STRENGTH BAR ───────────────────────── */
+.str-bar{height:2px;background:var(--s3);border-radius:1px;margin-top:5px;overflow:hidden;}
+.str-fill{height:100%;border-radius:1px;width:0;transition:width .3s,background .3s;}
+
+/* ─── TWO-COLUMN GRID ────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:800px){.g2{grid-template-columns:1fr;}}
+.col{display:flex;flex-direction:column;gap:14px;}
+
+/* ─── ADDRESS TABLE ──────────────────────── */
+.tbl-wrap{border:1px solid var(--bd);border-radius:var(--r4);overflow:hidden;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  text-align:left;padding:7px 12px;font-size:10px;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--t3);
+  border-bottom:1px solid var(--bd);background:var(--s1);
+}
+.tbl td{
+  padding:7px 12px;border-bottom:1px solid var(--sep);
+  font-family:var(--mono);font-size:11px;color:var(--t2);background:var(--s1);
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:var(--hov);}
+.addr-val{color:var(--acc);cursor:pointer;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;}
+.addr-val:hover{text-decoration:underline;}
+.pk-val{filter:blur(5px);cursor:pointer;transition:filter .18s;color:var(--amb);font-size:10px;}
+.pk-val.show{filter:blur(0);}
+.pk-val:hover{filter:blur(0);}
+
+/* ─── SIGNER ROWS ─────────────────────────── */
+.srows{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.srow{display:flex;gap:7px;align-items:center;}
+.srow-num{
+  width:22px;height:22px;border-radius:var(--r);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-family:var(--mono);color:var(--t3);
+  background:var(--s2);border:1px solid var(--bd);
+}
+
+/* ─── MULTISIG RESULT ─────────────────────── */
+.ms-result{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r4);padding:16px;}
+.ms-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px;}
+.ms-value{font-family:var(--mono);font-size:12px;color:var(--acc);word-break:break-all;cursor:pointer;line-height:1.6;}
+.ms-value:hover{text-decoration:underline;}
+.ms-divider{height:1px;background:var(--sep);margin:11px 0;}
+
+/* ─── ABOUT ───────────────────────────────── */
+.ph-title{font-size:22px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px;}
+.ph-desc{font-size:13px;color:var(--t3);}
+
+/* ─── INPUTS (standalone, outside .pv) ───── */
+input[type=text],input[type=number],input[type=password],textarea,select{
+  width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);
+  color:var(--t1);font-family:var(--mono);font-size:12px;padding:7px 10px;
+  outline:none;resize:vertical;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--acc);box-shadow:0 0 0 2px rgba(16,185,129,.1);
+}
+input::placeholder,textarea::placeholder{color:var(--t3);}
+textarea{line-height:1.6;min-height:72px;}
+select{cursor:pointer;font-family:var(--ui);}
+.row{display:flex;gap:9px;}
+.row>*{flex:1;}
+
+/* ─── BUTTONS ─────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;padding:6px 14px;border-radius:var(--r2);font-family:var(--ui);
+  font-weight:500;font-size:13px;cursor:pointer;
+  transition:all .14s;border:1px solid transparent;white-space:nowrap;
+}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;}
+.bp{background:var(--acc);color:#000;border-color:var(--acc);}
+.bp:hover{background:#0ea571;}
+.bs{background:transparent;color:var(--t1);border-color:var(--bd2);}
+.bs:hover{background:var(--s2);}
+.bg{background:transparent;color:var(--t2);border:none;}
+.bg:hover{background:var(--hov);color:var(--t1);}
+.bdanger{background:transparent;color:var(--red);border-color:rgba(224,82,82,.2);}
+.bdanger:hover{background:rgba(224,82,82,.06);}
+.bsm{padding:4px 10px;font-size:12px;}
+.bxs{padding:3px 8px;font-size:11px;}
+.brow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+
+/* ─── FOOTER ──────────────────────────────── */
+footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--s1);border-top:1px solid var(--sep);
+  height:24px;display:flex;align-items:center;padding:0 20px;
+  justify-content:space-between;font-size:11px;color:var(--t3);font-family:var(--mono);
+}
+
+/* ─── TOAST ───────────────────────────────── */
+#toast{
+  position:fixed;bottom:30px;right:18px;z-index:9999;
+  padding:9px 14px;border-radius:var(--r3);
+  background:var(--s2);border:1px solid var(--bd2);
+  font-family:var(--ui);font-size:13px;color:var(--t1);
+  box-shadow:0 8px 28px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(8px);
+  transition:all .2s var(--ease);max-width:280px;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.ok{border-color:rgba(16,185,129,.3);color:var(--acc);}
+#toast.err{border-color:rgba(224,82,82,.3);color:var(--red);}
+#toast.warn{border-color:rgba(196,154,60,.3);color:var(--amb);}
+</style>
+</head>
+<body>
+
+<!-- ════════ TOPBAR ════════ -->
+<header class="topbar">
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 22 22" fill="none">
+      <path d="M11 1.5L2 6v10l9 4.5 9-4.5V6L11 1.5z" stroke="rgba(255,255,255,.55)" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M11 1.5L2 6l9 4.5L20 6 11 1.5z" fill="rgba(255,255,255,.05)"/>
+      <path d="M2 6l9 4.5M20 6l-9 4.5M11 20.5V10.5" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="logo-name">Sanctum</span>
+    <div class="logo-sep"></div>
+    <span class="logo-sub">BIP39 · HD Wallet</span>
+  </div>
+  <div class="tb-space"></div>
+  <span class="offline-badge" id="offline-badge">Offline Ready</span>
+  <button class="install-btn" id="install-btn">Install App</button>
+</header>
+
+<!-- ════════ NAV TABS ════════ -->
+<nav class="nav">
+  <div class="ntab on" id="nt-gen"    onclick="showT('gen')">Generate</div>
+  <div class="ntab"    id="nt-import" onclick="showT('import')">Import</div>
+  <div class="ntab"    id="nt-multi"  onclick="showT('multi')">Multisig</div>
+  <div class="ntab"    id="nt-about"  onclick="showT('about')">About</div>
+</nav>
+
+<main class="page">
+
+<!-- ════════ GENERATE ════════ -->
+<div class="tp on" id="tp-gen">
+
+  <div class="notice n-warn">
+    <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M8 6v3.5M8 11.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    <span><strong>Security:</strong> This wallet runs 100% offline in your browser. Never share your seed phrase or private keys. For cold storage use on an air-gapped device.</span>
+  </div>
+
+  <div class="g2">
+
+    <!-- LEFT COLUMN -->
+    <div class="col">
+
+      <!-- Phrase config -->
+      <div>
+        <span class="sl">Mnemonic phrase</span>
+        <div class="pb">
+          <div class="pr">
+            <div class="pk">Word count</div>
+            <div class="pv-content">
+              <div class="ochips">
+                <span class="oc"    onclick="setWC(12)">12</span>
+                <span class="oc"    onclick="setWC(15)">15</span>
+                <span class="oc"    onclick="setWC(18)">18</span>
+                <span class="oc on" onclick="setWC(24)">24</span>
+              </div>
+            </div>
+          </div>
+          <div class="pr" style="align-items:flex-start">
+            <div class="pk" style="padding-top:11px">
+              BIP39 passphrase<br/>
+              <span style="font-size:10px;color:var(--t3)">25th word (optional)</span>
+            </div>
+            <div class="pv">
+              <input type="password" id="passphrase"
+                placeholder="Leave empty for standard derivation"
+                oninput="ppStrength()"/>
+              <div class="str-bar"><div class="str-fill" id="str-fill"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn bp" style="width:100%;padding:9px;margin-bottom:16px" onclick="genMn()">
+          Generate new mnemonic
+        </button>
+
+        <div class="mn-bar">
+          <span class="sl" style="margin-bottom:0">Phrase</span>
+          <div class="brow">
+            <button class="btn bg bxs" id="rev-btn" onclick="toggleReveal()">Reveal</button>
+            <button class="btn bg bxs" onclick="copyMn()">Copy</button>
+          </div>
+        </div>
+        <div class="mn-grid" id="mn-grid">
+          <div style="grid-column:1/-1;padding:24px 0;text-align:center;color:var(--t3);font-size:12px">
+            Click Generate to create a mnemonic phrase.
+          </div>
+        </div>
+      </div>
+
+      <!-- Derivation config -->
+      <div>
+        <span class="sl">Derivation</span>
+        <div class="pb">
+          <div class="pr">
+            <div class="pk">Network</div>
+            <div class="pv-content">
+              <div class="ochips">
+                <span class="oc on" onclick="setCoin('ETH')">ETH</span>
+                <span class="oc"    onclick="setCoin('BTC')">BTC</span>
+                <span class="oc"    onclick="setCoin('SOL')">SOL*</span>
+                <span class="oc"    onclick="setCoin('MATIC')">MATIC</span>
+                <span class="oc"    onclick="setCoin('BNB')">BNB</span>
+              </div>
+            </div>
+          </div>
+          <div class="pr">
+            <div class="pk">Path</div>
+            <div class="pv">
+              <input id="dpath" value="m/44'/60'/0'/0" oninput="clearCoinSel()"/>
+            </div>
+          </div>
+          <div class="pr">
+            <div class="pk">Start index</div>
+            <div class="pv"><input type="number" id="dstart" value="0" min="0"/></div>
+          </div>
+          <div class="pr">
+            <div class="pk">Count</div>
+            <div class="pv"><input type="number" id="dcount" value="10" min="1" max="100"/></div>
+          </div>
+        </div>
+        <div class="brow" style="margin-top:10px">
+          <button class="btn bs" onclick="deriveAddrs()">Derive addresses</button>
+          <button class="btn bg bsm" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+
+    </div><!-- /LEFT COLUMN -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="col">
+
+      <!-- Addresses -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <span class="sl" style="margin-bottom:0">
+            Derived addresses
+            <span id="addr-badge" style="color:var(--acc);font-weight:600"></span>
+          </span>
+          <button class="btn bg bxs" id="showkeys-btn" onclick="toggleKeys()">Show private keys</button>
+        </div>
+        <div class="tbl-wrap" style="max-height:340px;overflow-y:auto">
+          <table class="tbl">
+            <thead>
+              <tr><th>#</th><th>Address</th><th>Private key</th></tr>
+            </thead>
+            <tbody id="addr-tbody">
+              <tr>
+                <td colspan="3" style="text-align:center;color:var(--t3);padding:24px;font-size:12px">
+                  Derive addresses using the form on the left.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Root keys -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <span class="sl" style="margin-bottom:0">Root keys</span>
+          <button class="btn bg bxs" onclick="toggleRoot()">Toggle</button>
+        </div>
+        <div class="pb" id="root-panel" style="display:none">
+          <div class="pr">
+            <div class="pk">xpub<br/><span style="font-size:10px;color:var(--t3)">Extended public</span></div>
+            <div class="pv">
+              <input id="xpub-field" readonly onclick="copyValue(this.value)" title="Click to copy"/>
+            </div>
+          </div>
+          <div class="pr">
+            <div class="pk">xprv<br/><span style="font-size:10px;color:var(--red)">Secret</span></div>
+            <div class="pv"><input type="password" id="xprv-field" readonly/></div>
+            <div class="pa">
+              <button class="btn bg bxs" onclick="toggleInputType('xprv-field',this)">Show</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /RIGHT COLUMN -->
+
+  </div><!-- /g2 -->
+</div><!-- /tp-gen -->
+
+
+<!-- ════════ IMPORT ════════ -->
+<div class="tp" id="tp-import">
+
+  <div class="notice n-info">
+    <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M8 7v5M8 5.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    All operations run entirely in your browser. No data is transmitted anywhere.
+  </div>
+
+  <span class="sl">Mnemonic</span>
+  <div class="pb" style="margin-bottom:14px">
+    <div class="pr" style="align-items:flex-start">
+      <div class="pk" style="padding-top:11px">Phrase</div>
+      <div class="pv">
+        <textarea id="imp-mn" placeholder="word1 word2 word3 … word24"
+          oninput="validateImport()"
+          style="min-height:68px;line-height:1.8;"></textarea>
+        <div id="imp-status" style="font-size:11px;color:var(--t3);margin-top:3px"></div>
+      </div>
+    </div>
+    <div class="pr">
+      <div class="pk">Passphrase</div>
+      <div class="pv"><input type="password" id="imp-pp" placeholder="Leave empty if none"/></div>
+    </div>
+    <div class="pr">
+      <div class="pk">Network</div>
+      <div class="pv">
+        <select id="imp-coin" onchange="updateImportPath()">
+          <option value="ETH">Ethereum (ETH)</option>
+          <option value="BTC">Bitcoin (BTC)</option>
+          <option value="MATIC">Polygon (MATIC)</option>
+          <option value="BNB">BNB Chain</option>
+          <option value="SOL">Solana (SOL)*</option>
+        </select>
+      </div>
+    </div>
+    <div class="pr">
+      <div class="pk">Derivation path</div>
+      <div class="pv"><input id="imp-path" value="m/44'/60'/0'/0"/></div>
+    </div>
+    <div class="pr">
+      <div class="pk">Start index</div>
+      <div class="pv"><input type="number" id="imp-start" value="0" min="0"/></div>
+    </div>
+    <div class="pr">
+      <div class="pk">Count</div>
+      <div class="pv"><input type="number" id="imp-count" value="10" min="1" max="100"/></div>
+    </div>
+  </div>
+
+  <div class="brow" style="margin-bottom:24px">
+    <button class="btn bp" id="imp-btn" disabled onclick="importAndDerive()">Import and derive</button>
+    <button class="btn bg" onclick="clearImport()">Clear</button>
+  </div>
+
+  <div id="imp-results" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+      <span class="sl" style="margin-bottom:0">
+        Derived addresses
+        <span id="imp-badge" style="color:var(--acc);font-weight:600"></span>
+      </span>
+      <div class="brow">
+        <button class="btn bg bxs" onclick="toggleImpKeys()">Show keys</button>
+        <button class="btn bg bxs" onclick="exportImpCSV()">Export CSV</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Address</th><th>Private key</th></tr></thead>
+        <tbody id="imp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /tp-import -->
+
+
+<!-- ════════ MULTISIG ════════ -->
+<div class="tp" id="tp-multi">
+  <div class="g2">
+
+    <div class="col">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <span class="sl" style="margin-bottom:0">Signers</span>
+          <button class="btn bs bxs" onclick="addSigner()">+ Add signer</button>
+        </div>
+        <div class="srows" id="srows"></div>
+      </div>
+
+      <div>
+        <span class="sl">Configuration</span>
+        <div class="pb">
+          <div class="pr">
+            <div class="pk">Required signatures</div>
+            <div class="pv"><input type="number" id="ms-m" value="2" min="1"/></div>
+          </div>
+          <div class="pr">
+            <div class="pk">Salt / nonce</div>
+            <div class="pv">
+              <input id="ms-salt"
+                value="0x0000000000000000000000000000000000000000000000000000000000000000"
+                style="font-size:10px"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn bp" style="width:100%" onclick="computeMultisig()">
+        Compute multisig address
+      </button>
+    </div>
+
+    <div class="col">
+      <div id="ms-result-wrap" style="display:none">
+        <span class="sl">Result</span>
+        <div class="ms-result">
+          <div class="ms-label">Gnosis Safe address (CREATE2)</div>
+          <div class="ms-value" id="ms-addr" onclick="copyValue(this.textContent)">—</div>
+          <div class="ms-divider"></div>
+          <div class="ms-label">Owners</div>
+          <div id="ms-owners" style="margin-top:5px"></div>
+          <div class="ms-divider"></div>
+          <div class="ms-label">Setup calldata (truncated)</div>
+          <div id="ms-data"
+            style="font-family:var(--mono);font-size:10px;color:var(--t3);word-break:break-all;line-height:1.5">
+            —
+          </div>
+        </div>
+        <div class="notice n-base" style="margin-top:10px;margin-bottom:0">
+          <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M8 7v5M8 5.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          Deploy at <a href="https://app.safe.global" target="_blank"
+            style="color:var(--acc)">app.safe.global</a> with these owners and threshold.
+        </div>
+      </div>
+
+      <div class="notice n-base" style="margin-bottom:0">
+        <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 7v5M8 5.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        Derive addresses in Generate or Import, then paste them as signers. Same owners + threshold + salt always produce the same Safe address.
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tp-multi -->
+
+
+<!-- ════════ ABOUT ════════ -->
+<div class="tp" id="tp-about">
+  <div style="margin-bottom:28px">
+    <div class="ph-title">About Sanctum</div>
+    <div class="ph-desc">Fully offline, open-source HD wallet. All cryptography runs in your browser via ethers.js. Zero network requests.</div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <span class="sl">Standards supported</span>
+      <div class="pb">
+        <div class="pr"><div class="pk">BIP39</div><div class="pv">Mnemonic phrase generation and validation</div></div>
+        <div class="pr"><div class="pk">BIP32</div><div class="pv">Hierarchical deterministic derivation</div></div>
+        <div class="pr"><div class="pk">BIP44</div><div class="pv">Multi-account hierarchy for HD wallets</div></div>
+        <div class="pr"><div class="pk">EIP-55</div><div class="pv">Mixed-case checksum address encoding</div></div>
+      </div>
+      <span class="sl">Derivation paths</span>
+      <div class="pb">
+        <div class="pr"><div class="pk">Ethereum / EVM</div><div class="pv" style="font-family:var(--mono);font-size:12px">m/44'/60'/0'/0</div></div>
+        <div class="pr"><div class="pk">Bitcoin (Legacy)</div><div class="pv" style="font-family:var(--mono);font-size:12px">m/44'/0'/0'/0</div></div>
+        <div class="pr"><div class="pk">Bitcoin (SegWit)</div><div class="pv" style="font-family:var(--mono);font-size:12px">m/49'/0'/0'/0</div></div>
+        <div class="pr"><div class="pk">Solana*</div><div class="pv" style="font-family:var(--mono);font-size:12px">m/44'/501'/0'/0'</div></div>
+        <div class="pr"><div class="pk">Polygon / BNB</div><div class="pv" style="font-family:var(--mono);font-size:12px">m/44'/60'/0'/0</div></div>
+      </div>
+    </div>
+    <div class="col">
+      <span class="sl">Security guidelines</span>
+      <div class="notice n-warn" style="margin-bottom:8px">
+        <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M8 6v3.5M8 11.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span><strong>Cold storage:</strong> Download page, go offline, generate seed, write on paper, clear browser cache.</span>
+      </div>
+      <div class="notice n-info" style="margin-bottom:8px">
+        <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 7v5M8 5.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span><strong>Passphrase:</strong> Acts as a 25th word — without it, even a correct seed cannot access your funds.</span>
+      </div>
+      <div class="notice n-base" style="margin-bottom:8px">
+        <svg class="n-ico" width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 7v5M8 5.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span><strong>Solana*:</strong> Uses ed25519 (SLIP-0010), different from secp256k1 used by ETH/BTC.</span>
+      </div>
+      <button class="btn bs bsm" onclick="downloadSelf()">Download offline copy</button>
+    </div>
+  </div>
+</div><!-- /tp-about -->
+
+</main>
+
+<footer>
+  <span>All operations local · zero network · open source</span>
+  <span>Sanctum v2.0 · ethers.js 6 · BIP39/BIP44</span>
+</footer>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+<script>
+'use strict';
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let curMnemonic = '';
+let curWC = 24;
+let curCoin = 'ETH';
+let derivedAddrs = [];
+let importedAddrs = [];
+let keysVisible = false;
+let impKeysVisible = false;
+let signerCount = 3;
+
+const COIN_PATHS = {
+  ETH:  "m/44'/60'/0'/0",
+  BTC:  "m/44'/0'/0'/0",
+  SOL:  "m/44'/501'/0'/0",
+  MATIC:"m/44'/60'/0'/0",
+  BNB:  "m/44'/60'/0'/0"
+};
+
+const SAFE_FACTORY  = '0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2';
+const SAFE_SINGLETON= '0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552';
+const SAFE_FALLBACK = '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4';
+
+/* ══════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════ */
+function showT(t) {
+  document.querySelectorAll('.tp').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(i => i.classList.remove('on'));
+  document.getElementById('tp-' + t).classList.add('on');
+  document.getElementById('nt-' + t).classList.add('on');
+}
+
+/* ══════════════════════════════════════════════
+   GENERATE
+══════════════════════════════════════════════ */
+function genMn() {
+  try {
+    const bytes = curWC / 3 * 4;
+    curMnemonic = ethers.Mnemonic.entropyToPhrase(ethers.randomBytes(bytes));
+    renderMnemonic(true);
+    setTimeout(deriveAddrs, 80);
+    toast('New mnemonic generated', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+function renderMnemonic(hidden = true) {
+  const words = curMnemonic.split(' ');
+  const grid = document.getElementById('mn-grid');
+  grid.innerHTML = words.map((w, i) =>
+    `<div class="wc${hidden ? ' h' : ''}" style="animation-delay:${i * 0.022}s">
+       <span class="wnum">${String(i + 1).padStart(2, '0')}</span>
+       <span class="wtext">${w}</span>
+     </div>`
+  ).join('');
+  document.getElementById('rev-btn').textContent = hidden ? 'Reveal' : 'Hide';
+}
+
+function toggleReveal() {
+  const cells = document.querySelectorAll('#mn-grid .wc');
+  if (!cells.length) return;
+  const isHidden = cells[0].classList.contains('h');
+  cells.forEach(c => c.classList.toggle('h', !isHidden));
+  document.getElementById('rev-btn').textContent = isHidden ? 'Hide' : 'Reveal';
+}
+
+function copyMn() {
+  if (!curMnemonic) return toast('Generate a mnemonic first', 'err');
+  navigator.clipboard.writeText(curMnemonic);
+  toast('Mnemonic copied — keep it secret', 'warn');
+}
+
+function setWC(n) {
+  curWC = n;
+  document.querySelectorAll('.oc').forEach(b => {
+    if (['12','15','18','24'].includes(b.textContent))
+      b.classList.toggle('on', parseInt(b.textContent) === n);
+  });
+}
+
+function setCoin(c) {
+  curCoin = c;
+  document.querySelectorAll('.oc').forEach(b => {
+    const txt = b.textContent.replace('*','');
+    if (['ETH','BTC','SOL','MATIC','BNB'].includes(txt))
+      b.classList.toggle('on', txt === c);
+  });
+  document.getElementById('dpath').value = COIN_PATHS[c] || COIN_PATHS.ETH;
+}
+
+function clearCoinSel() {
+  document.querySelectorAll('.oc').forEach(b => {
+    if (['ETH','BTC','SOL*','MATIC','BNB'].includes(b.textContent))
+      b.classList.remove('on');
+  });
+}
+
+function ppStrength() {
+  const v = document.getElementById('passphrase').value;
+  const s = Math.min(100, v.length / 12 * 100);
+  const fill = document.getElementById('str-fill');
+  fill.style.width = s + '%';
+  fill.style.background = s < 25 ? '#e05252' : s < 50 ? '#c49a3c' : s < 75 ? '#4d94e8' : '#10b981';
+}
+
+function deriveAddrs() {
+  if (!curMnemonic) return toast('Generate or import a mnemonic first', 'err');
+  const path  = document.getElementById('dpath').value.trim();
+  const start = parseInt(document.getElementById('dstart').value) || 0;
+  const count = Math.min(parseInt(document.getElementById('dcount').value) || 10, 100);
+  const pp    = document.getElementById('passphrase').value;
+  try {
+    derivedAddrs = [];
+    for (let i = start; i < start + count; i++) {
+      const fp = path + '/' + i;
+      const w = ethers.HDNodeWallet.fromPhrase(curMnemonic, pp, fp);
+      derivedAddrs.push({ idx: i, path: fp, addr: w.address, pk: w.privateKey });
+    }
+    try {
+      const root = ethers.HDNodeWallet.fromPhrase(curMnemonic, pp, path);
+      document.getElementById('xpub-field').value = root.neuter().extendedKey || root.publicKey;
+      document.getElementById('xprv-field').value = root.extendedKey || root.privateKey;
+    } catch (_) {}
+    renderAddrTable('addr-tbody', derivedAddrs);
+    document.getElementById('addr-badge').textContent = ' ' + derivedAddrs.length;
+    toast('Derived ' + count + ' addresses', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+function renderAddrTable(tbodyId, addrs) {
+  const tb = document.getElementById(tbodyId);
+  if (!addrs.length) {
+    tb.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px;font-size:12px">No addresses.</td></tr>';
+    return;
+  }
+  tb.innerHTML = addrs.map(a => `
+    <tr>
+      <td style="color:var(--t3)">${a.idx}</td>
+      <td><span class="addr-val" onclick="copyValue('${a.addr}')" title="Click to copy">${a.addr}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="pk-val" onclick="this.classList.toggle('show')" title="Click to reveal">${a.pk}</span>
+          <button class="btn bg bxs" onclick="copyValue('${a.pk}')" style="flex-shrink:0">Copy</button>
+        </div>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+function toggleKeys() {
+  keysVisible = !keysVisible;
+  document.querySelectorAll('#addr-tbody .pk-val').forEach(e => e.classList.toggle('show', keysVisible));
+  document.getElementById('showkeys-btn').textContent = keysVisible ? 'Hide private keys' : 'Show private keys';
+}
+
+function toggleImpKeys() {
+  impKeysVisible = !impKeysVisible;
+  document.querySelectorAll('#imp-tbody .pk-val').forEach(e => e.classList.toggle('show', impKeysVisible));
+}
+
+function toggleRoot() {
+  const p = document.getElementById('root-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleInputType(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? 'Show' : 'Hide';
+}
+
+function exportCSV() {
+  if (!derivedAddrs.length) return toast('No addresses to export', 'err');
+  const csv = ['Index,Path,Address,PrivateKey']
+    .concat(derivedAddrs.map(a => `${a.idx},"${a.path}","${a.addr}","${a.pk}"`))
+    .join('\n');
+  downloadFile('sanctum-addresses.csv', csv, 'text/csv');
+  toast('Exported', 'ok');
+}
+
+/* ══════════════════════════════════════════════
+   IMPORT
+══════════════════════════════════════════════ */
+function validateImport() {
+  const raw = document.getElementById('imp-mn').value.trim();
+  const btn = document.getElementById('imp-btn');
+  const st  = document.getElementById('imp-status');
+  if (!raw) { st.textContent = ''; btn.disabled = true; return; }
+  try {
+    ethers.Mnemonic.fromPhrase(raw);
+    const wc = raw.split(/\s+/).filter(Boolean).length;
+    st.innerHTML = `<span style="color:var(--acc)">Valid ${wc}-word BIP39 mnemonic</span>`;
+    btn.disabled = false;
+  } catch (_) {
+    st.innerHTML = `<span style="color:var(--red)">Invalid — check word spelling</span>`;
+    btn.disabled = true;
+  }
+}
+
+function updateImportPath() {
+  const c = document.getElementById('imp-coin').value;
+  document.getElementById('imp-path').value = COIN_PATHS[c] || COIN_PATHS.ETH;
+}
+
+function importAndDerive() {
+  const phrase = document.getElementById('imp-mn').value.trim();
+  const pp     = document.getElementById('imp-pp').value;
+  const path   = document.getElementById('imp-path').value.trim();
+  const start  = parseInt(document.getElementById('imp-start').value) || 0;
+  const count  = Math.min(parseInt(document.getElementById('imp-count').value) || 10, 100);
+  try {
+    importedAddrs = [];
+    for (let i = start; i < start + count; i++) {
+      const fp = path + '/' + i;
+      const w = ethers.HDNodeWallet.fromPhrase(phrase, pp, fp);
+      importedAddrs.push({ idx: i, path: fp, addr: w.address, pk: w.privateKey });
+    }
+    renderAddrTable('imp-tbody', importedAddrs);
+    document.getElementById('imp-badge').textContent = ' ' + importedAddrs.length;
+    document.getElementById('imp-results').style.display = 'block';
+    toast('Imported ' + count + ' addresses', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+function clearImport() {
+  document.getElementById('imp-mn').value = '';
+  document.getElementById('imp-pp').value = '';
+  document.getElementById('imp-status').textContent = '';
+  document.getElementById('imp-btn').disabled = true;
+  document.getElementById('imp-results').style.display = 'none';
+  importedAddrs = [];
+}
+
+function exportImpCSV() {
+  if (!importedAddrs.length) return toast('No addresses', 'err');
+  const csv = ['Index,Path,Address,PrivateKey']
+    .concat(importedAddrs.map(a => `${a.idx},"${a.path}","${a.addr}","${a.pk}"`))
+    .join('\n');
+  downloadFile('sanctum-imported.csv', csv, 'text/csv');
+}
+
+/* ══════════════════════════════════════════════
+   MULTISIG  — pure Uint8Array (no ethers.getBytes bug)
+══════════════════════════════════════════════ */
+function hexToBytes(hex) {
+  const h = (hex || '').replace(/^0x/i, '').replace(/[^0-9a-fA-F]/g, '');
+  const p = h.length % 2 ? '0' + h : h;
+  const b = new Uint8Array(p.length / 2);
+  for (let i = 0; i < p.length; i += 2) b[i >> 1] = parseInt(p.substring(i, i + 2), 16);
+  return b;
+}
+function concatBytes(...arrs) {
+  const total = arrs.reduce((s, a) => s + a.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  arrs.forEach(a => { out.set(a, off); off += a.length; });
+  return out;
+}
+
+function initSigners() {
+  const c = document.getElementById('srows');
+  c.innerHTML = '';
+  for (let i = 0; i < signerCount; i++) addSignerRow(i);
+}
+
+function addSigner() {
+  signerCount++;
+  addSignerRow(signerCount - 1);
+}
+
+function addSignerRow(i) {
+  const c = document.getElementById('srows');
+  const d = document.createElement('div');
+  d.className = 'srow';
+  d.id = 'sr-' + i;
+  d.innerHTML = `
+    <span class="srow-num">${i + 1}</span>
+    <input type="text" id="s-${i}" placeholder="0x… Ethereum address"/>
+    <button class="btn bdanger bxs" onclick="document.getElementById('sr-${i}').remove()" style="flex-shrink:0">Remove</button>
+  `;
+  c.appendChild(d);
+}
+
+function computeMultisig() {
+  const signers = [];
+  for (let i = 0; i < signerCount; i++) {
+    const el = document.getElementById('s-' + i);
+    if (el && el.value.trim()) signers.push(el.value.trim());
+  }
+  const m    = parseInt(document.getElementById('ms-m').value);
+  const salt = document.getElementById('ms-salt').value.trim() || '0x' + '0'.repeat(64);
+
+  if (signers.length < 2) return toast('Add at least 2 signers', 'err');
+  if (m < 1 || m > signers.length) return toast('Threshold must be 1–' + signers.length, 'err');
+  for (const s of signers) {
+    try { ethers.getAddress(s); } catch (_) { return toast('Invalid address: ' + s, 'err'); }
+  }
+
+  try {
+    const iface = new ethers.Interface([
+      'function setup(address[],uint256,address,bytes,address,address,uint256,address) external'
+    ]);
+    const setupData = iface.encodeFunctionData('setup', [
+      signers, m,
+      '0x0000000000000000000000000000000000000000', '0x',
+      SAFE_FALLBACK,
+      '0x0000000000000000000000000000000000000000', 0,
+      '0x0000000000000000000000000000000000000000'
+    ]);
+
+    const PROXY = '608060405234801561001057600080fd5b506040516101e63803806101e68339818101604052602081101561003357600080fd5b8101908080519060200190929190505050600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156100ca576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260228152602001806101c46022913960400191505060405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055505060ab806101196000396000f3fe608060405273ffffffffffffffffffffffffffffffffffffffff600054167fa619486e0000000000000000000000000000000000000000000000000000000060003514156050578060005260206000f35b3660008037600080366000845af43d6000803e60008114156070573d6000fd5b3d6000f3fea264697066735822122034efab9b7b8aef6779ed1bce9e3a8e5571a87f1f9c0e00e2bfcdfa84f27b2d464736f6c63430007060033';
+
+    const singletonEnc = ethers.AbiCoder.defaultAbiCoder().encode(['address'], [SAFE_SINGLETON]);
+    const initHash  = ethers.keccak256(concatBytes(hexToBytes(PROXY), hexToBytes(singletonEnc)));
+    const setupHash = hexToBytes(ethers.keccak256(hexToBytes(setupData)));
+    const saltNorm  = salt.replace(/^0x/i, '').padStart(64, '0').slice(0, 64);
+    const dSalt     = ethers.keccak256(concatBytes(setupHash, hexToBytes(saltNorm)));
+    const create2   = ethers.keccak256(concatBytes(
+      new Uint8Array([0xff]),
+      hexToBytes(SAFE_FACTORY.slice(2)),
+      hexToBytes(dSalt.slice(2)),
+      hexToBytes(initHash.slice(2))
+    ));
+    const addr = ethers.getAddress('0x' + create2.slice(-40));
+
+    document.getElementById('ms-addr').textContent = addr;
+    document.getElementById('ms-data').textContent = setupData.slice(0, 100) + '…';
+    document.getElementById('ms-owners').innerHTML = signers.map((o, i) =>
+      `<div style="display:flex;gap:7px;padding:3px 0;align-items:center">
+         <span style="color:var(--t3);font-family:var(--mono);font-size:10px;width:20px">[${i+1}]</span>
+         <span style="font-family:var(--mono);color:var(--acc);cursor:pointer;font-size:11px"
+           onclick="copyValue('${o}')">${o}</span>
+       </div>`
+    ).join('');
+    document.getElementById('ms-result-wrap').style.display = 'block';
+    toast('Safe address computed', 'ok');
+  } catch (e) { toast(e.message, 'err'); console.error(e); }
+}
+
+/* ══════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════ */
+function copyValue(v) {
+  if (!v || v === '—') return;
+  navigator.clipboard.writeText(v).then(() => toast('Copied', 'ok'));
+}
+
+function downloadFile(name, content, type) {
+  const b = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = name;
+  a.click();
+}
+
+function downloadSelf() {
+  const a = document.createElement('a');
+  a.href = window.location.href;
+  a.download = 'sanctum-offline.html';
+  a.click();
+  toast('Downloading offline copy', 'ok');
+}
+
+let _toastTimer;
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : type === 'warn' ? 'warn' : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.className = '', 3500);
+}
+
+/* ══════════════════════════════════════════════
+   PWA
+══════════════════════════════════════════════ */
+let _installPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  document.getElementById('install-btn').style.display = 'block';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  const { outcome } = await _installPrompt.userChoice;
+  if (outcome === 'accepted') toast('App installed', 'ok');
+  _installPrompt = null;
+  document.getElementById('install-btn').style.display = 'none';
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {
+    const b = document.getElementById('offline-badge');
+    b.textContent = 'Online Only';
+    b.style.background = 'var(--s2)';
+    b.style.color = 'var(--t3)';
+    b.style.borderColor = 'var(--bd)';
+  });
+}
+
+/* ══════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════ */
+initSigners();
+</script>
+</body>
+</html>
