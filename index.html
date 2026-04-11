@@ -4219,7 +4219,7 @@ function buildDocView(page){
 let _slashMenu=null, _slashRange=null;
 
 function docEditorKey(e, editor, page){
-  // 1. Slash menu navigation
+  // Slash menu navigation
   if(_slashMenu){
     if(e.key==='Enter'){e.preventDefault();const f=_slashMenu.querySelector('.focused');if(f)f.click();else closeSlashMenu();return;}
     if(e.key==='ArrowDown'){e.preventDefault();navigateSlash(1);return;}
@@ -4231,39 +4231,47 @@ function docEditorKey(e, editor, page){
   if(!sel||!sel.rangeCount)return;
   const r=sel.getRangeAt(0);
 
-  // 2. Handle Enter Key (Escaping Blocks & Todos)
+  // ── Enter key: continue or exit block types ──────────────
   if(e.key==='Enter'&&!e.shiftKey){
-    // Handle Todo Lists
+    
+    // 1. Handle Todo Lists
     const todoDiv=getAncestor(r.startContainer,'.todo');
     if(todoDiv){
       e.preventDefault();
       const span=todoDiv.querySelector('span');
-      const text=span?span.textContent:'';
-      if(!text.trim()){
-        // Empty todo → exit: replace with plain div
-        const p=document.createElement('div');p.innerHTML='<br>';
+      // Check if the span only contains a <br> or is empty
+      const text=span?span.textContent.trim():'';
+      
+      if(!text){
+        // Empty todo → exit: replace with plain paragraph
+        const p=document.createElement('div');
+        p.innerHTML='<br>'; // Fixes the missing cursor!
         todoDiv.parentNode.insertBefore(p,todoDiv.nextSibling);
         todoDiv.remove();
-        const nr=document.createRange();nr.setStart(p,0);nr.collapse(true);
-        sel.removeAllRanges();sel.addRange(nr);
+        
+        const nr=document.createRange();
+        nr.setStart(p,0);
+        nr.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nr);
       } else {
-        // Non-empty todo → create new todo row
+        // Non-empty todo → create new todo row below it
         insertTodoAfter(todoDiv);
       }
       setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
       return;
     }
 
-    // Escape Headings and Blockquotes gracefully
-    const block=getAncestor(r.startContainer,'h1, h2, h3, blockquote');
-    if(block){
+    // 2. Escape Headings (H1, H2, H3)
+    const heading=getAncestor(r.startContainer,'h1, h2, h3');
+    if(heading){
       e.preventDefault();
-      const newDiv = document.createElement('div');
-      newDiv.innerHTML = '<br>';
-      block.parentNode.insertBefore(newDiv, block.nextSibling);
+      const p=document.createElement('div');
+      p.innerHTML='<br>'; // Fixes the missing cursor!
+      heading.parentNode.insertBefore(p,heading.nextSibling);
       
-      const nr = document.createRange();
-      nr.setStart(newDiv, 0);
+      const nr=document.createRange();
+      nr.setStart(p,0);
       nr.collapse(true);
       sel.removeAllRanges();
       sel.addRange(nr);
@@ -4273,48 +4281,30 @@ function docEditorKey(e, editor, page){
     }
   }
 
-  // 3. Handle Space Key (Markdown Shortcuts)
-  if(e.key===' '){
+  // ── Space/Enter markdown shortcuts ───────────────────────
+  if(e.key===' '||e.key==='Enter'){
     const node=r.startContainer;
     if(node.nodeType!==Node.TEXT_NODE)return;
-    
     const text=node.textContent.slice(0,r.startOffset);
     let matched=false;
-
-    // Headings
-    if(text==='#'){ e.preventDefault(); document.execCommand('formatBlock',false,'h1'); matched=true; }
-    else if(text==='##'){ e.preventDefault(); document.execCommand('formatBlock',false,'h2'); matched=true; }
-    else if(text==='###'){ e.preventDefault(); document.execCommand('formatBlock',false,'h3'); matched=true; }
-    // Lists
-    else if(text==='-'||text==='*'){ e.preventDefault(); document.execCommand('insertUnorderedList'); matched=true; }
-    else if(text==='1.'){ e.preventDefault(); document.execCommand('insertOrderedList'); matched=true; }
-    // Quotes & Todos
-    else if(text==='>'){ e.preventDefault(); document.execCommand('formatBlock',false,'blockquote'); matched=true; }
-    else if(text==='[]'){ e.preventDefault(); insertTodo(node); matched=true; }
-
+    
+    if(text==='#'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(1);document.execCommand('formatBlock',false,'h1');matched=true;}
+    else if(text==='##'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(2);document.execCommand('formatBlock',false,'h2');matched=true;}
+    else if(text==='###'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(3);document.execCommand('formatBlock',false,'h3');matched=true;}
+    else if((text==='-'||text==='*')&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertUnorderedList');matched=true;}
+    else if(text==='1.'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertOrderedList');matched=true;}
+    else if(text==='>'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('formatBlock',false,'blockquote');matched=true;}
+    else if(text==='---'&&e.key==='Enter'){e.preventDefault();document.execCommand('insertHorizontalRule');matched=true;}
+    else if(text==='[]'&&e.key===' '){e.preventDefault();node.textContent='';insertTodo(node);matched=true;}
+    
     if(matched){
-      // Clean up the markdown trigger characters
-      node.textContent = node.textContent.slice(r.startOffset);
       setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
-      return;
     }
   }
 
-  // Handle Markdown Horizontal Rule
-  if(e.key==='Enter'){
-    const node=r.startContainer;
-    if(node.nodeType===Node.TEXT_NODE && node.textContent.trim()==='---'){
-      e.preventDefault();
-      node.textContent = '';
-      document.execCommand('insertHorizontalRule');
-      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
-      return;
-    }
-  }
-
-  // Auto-save on standard typing
+  // Save on any edit key
   if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){
-    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},100);
+    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},50);
   }
 }
 
@@ -4328,14 +4318,52 @@ function getAncestor(node,selector){
 }
 
 function insertTodoAfter(todoDiv){
-  const newDiv=document.createElement('div');newDiv.className='todo';
-  const cb=document.createElement('input');cb.type='checkbox';
+  const newDiv=document.createElement('div');
+  newDiv.className='todo';
+  const cb=document.createElement('input');
+  cb.type='checkbox';
   cb.addEventListener('change',()=>newDiv.classList.toggle('done',cb.checked));
-  const span=document.createElement('span');span.contentEditable='true';span.textContent='';
-  newDiv.appendChild(cb);newDiv.appendChild(span);
+  
+  const span=document.createElement('span');
+  span.contentEditable='true';
+  span.innerHTML='<br>'; // CRITICAL: Gives the cursor a place to sit
+  
+  newDiv.appendChild(cb);
+  newDiv.appendChild(span);
   todoDiv.parentNode.insertBefore(newDiv,todoDiv.nextSibling);
-  const nr=document.createRange();nr.setStart(span,0);nr.collapse(true);
-  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(nr);
+  
+  const sel=window.getSelection();
+  const nr=document.createRange();
+  nr.setStart(span,0);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+}
+
+function insertTodo(node){
+  const sel=window.getSelection();
+  const r=sel.getRangeAt(0);
+  r.startContainer.textContent=''; 
+  
+  const div=document.createElement('div');
+  div.className='todo';
+  const cb=document.createElement('input');
+  cb.type='checkbox';
+  cb.addEventListener('change',()=>{div.classList.toggle('done',cb.checked);});
+  
+  const span=document.createElement('span');
+  span.contentEditable='true';
+  span.innerHTML='<br>'; // CRITICAL: Gives the cursor a place to sit
+  
+  div.appendChild(cb);
+  div.appendChild(span);
+  r.insertNode(div);
+  
+  const nr=document.createRange();
+  nr.setStart(span,0);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
 }
 
 function applyBlock(node, tag, prefix){
@@ -4347,19 +4375,6 @@ function applyBlock(node, tag, prefix){
   node.textContent=node.textContent.slice(0,start).replace(/^[#\-\*>]+\s?/,'');
   if(tag==='blockquote')document.execCommand('formatBlock',false,'blockquote');
   else if(['h1','h2','h3'].includes(tag))document.execCommand('formatBlock',false,tag);
-}
-
-function insertTodo(node){
-  const r=window.getSelection().getRangeAt(0);
-  r.startContainer.textContent='';
-  const div=document.createElement('div');div.className='todo';
-  const cb=document.createElement('input');cb.type='checkbox';
-  cb.addEventListener('change',()=>{div.classList.toggle('done',cb.checked);});
-  const span=document.createElement('span');span.textContent='';span.contentEditable='true';
-  div.appendChild(cb);div.appendChild(span);
-  r.insertNode(div);
-  const sel=window.getSelection();const nr=document.createRange();
-  nr.setStart(span,0);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr);
 }
 
 function checkSlashMenu(e, editor){
