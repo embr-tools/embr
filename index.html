@@ -152,6 +152,72 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .main{overflow-y:auto;background:var(--page);min-height:0;grid-column:2;grid-row:2;}
 .panel{display:none;animation:panIn .2s var(--ease);}
 
+/* ── STICKY NOTION TOOLBAR ── */
+.notion-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: var(--page);
+  border-bottom: 1px solid var(--divider);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.notion-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.notion-tb-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 14px;
+  font-family: var(--ui);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.notion-tb-btn:hover, 
+.notion-tb-btn:active {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.notion-tb-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--divider);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Ensure editor content isn't hidden behind the sticky toolbar */
+.doc-editor {
+  padding: 24px 32px 120px !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .doc-editor {
+    padding: 16px 20px 160px !important;
+  }
+}
+
 
 
 @keyframes panIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -526,6 +592,131 @@ select{cursor:pointer;font-family:var(--ui);}
 .hr-icon{color:var(--text3);flex-shrink:0;}
 .hr-text{font-size:13px;color:var(--text2);flex:1;}
 .hr-arrow{color:var(--text3);flex-shrink:0;opacity:.5;}
+
+/* ── NOTION-STYLE MOBILE BACK BUTTON ── */
+.mob-notes-back {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text3);
+  background: var(--page);
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  font-family: var(--ui);
+  transition: color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .notes-shell.mob-page-open .mob-notes-back {
+    display: flex !important;
+  }
+}
+
+.mob-notes-back:hover, 
+.mob-notes-back:active {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.mob-notes-back-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+/* ── NOTION FLOATING TOOLBAR ── */
+.floating-toolbar {
+  position: fixed;
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  gap: 2px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) translateX(-50%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.floating-toolbar.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0) translateX(-50%);
+}
+
+.ft-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: #d4d4d4;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ui);
+  transition: background 0.1s, color 0.1s;
+}
+
+.ft-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.ft-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 4px;
+}
+
+/* ── ENHANCED SLASH MENU ── */
+.slash-menu {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) !important;
+  width: 300px !important;
+}
+
+.slash-item.focused {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.slash-icon {
+  background: #2a2a2a !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+/* ── SIDEBAR & EDITOR SPACING REFINEMENTS ── */
+.notes-sidebar {
+  background: var(--surface); /* Blend it better */
+  border-right: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+.doc-editor {
+  padding: 40px 16px 120px !important; /* Push text down gracefully */
+  font-size: 15.5px !important; /* Slightly larger, highly readable */
+  line-height: 1.65 !important;
+  color: #e0e0e0 !important;
+}
+
+@media (max-width: 768px) {
+  .doc-editor {
+    padding: 24px 16px 160px !important;
+  }
+}
 
 /* ── WALLET BUTTON + POPUP ─────────────────────────────── */
 .wallet-btn{
@@ -1046,57 +1237,97 @@ select{cursor:pointer;font-family:var(--ui);}
   .gas-tiers { grid-template-columns: repeat(3,1fr); }
   .tw-grid { grid-template-columns: repeat(2,1fr) !important; }
 
-  /* ── Notes — Notion-style mobile ── */
-  /* notes-shell: full width single column, fills space below topbar */
+  /* ── Notes — Notion mobile (Notion-style) ── */
   .notes-shell {
     display: flex !important;
     flex-direction: column !important;
     height: calc(100vh - 48px) !important;
-    grid-template-columns: none !important;
     overflow: hidden !important;
   }
-  /* Page list: shown by default on mobile, hidden when page open */
-  .notes-sidebar {
+  /* DEFAULT STATE: show sidebar (page list), hide main (editor) */
+  .notes-shell > .notes-sidebar {
     position: static !important;
     transform: none !important;
     width: 100% !important;
     height: 100% !important;
     border-right: none !important;
-    border-bottom: 1px solid var(--divider);
+    border-bottom: none !important;
     padding: 0 !important;
     box-shadow: none !important;
     display: flex !important;
     flex-direction: column !important;
-    transition: none !important;
+    overflow-y: auto !important;
   }
-  /* When page is open on mobile, hide page list, show editor */
-  .notes-shell.mob-page-open .notes-sidebar { display: none !important; }
-  .notes-shell.mob-page-open .notes-main { display: flex !important; }
-  /* Default: show page list, hide editor */
-  .notes-main { display: none !important; }
-  /* Page list header */
-  .ns-header { padding: 16px 16px 8px !important; }
-  .ns-title { font-size: 14px !important; letter-spacing: 0 !important; color: var(--text) !important; font-weight: 600 !important; }
-  /* Page list items — bigger touch targets */
-  .ns-page { padding: 12px 16px !important; border-radius: 0 !important; border-bottom: 1px solid var(--divider); font-size: 15px !important; }
+  .notes-shell > .notes-mob-menu { display: none !important; }
+  .notes-shell > .notes-main { display: none !important; }
+
+  /* OPEN STATE (.mob-page-open): hide list, show editor */
+  .notes-shell.mob-page-open > .notes-sidebar { display: none !important; }
+  .notes-shell.mob-page-open > .notes-main {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+  }
+
+  /* Page list styling */
+  .ns-header { padding: 16px 16px 10px !important; }
+  .ns-title { font-size: 15px !important; letter-spacing: 0 !important; color: var(--text) !important; font-weight: 600 !important; text-transform: none !important; }
+  .ns-page { padding: 13px 16px !important; border-radius: 0 !important; border-bottom: 1px solid var(--divider) !important; font-size: 15px !important; min-height: 48px !important; }
   .ns-page-icon { font-size: 18px !important; width: 28px !important; }
   .ns-page-name { font-size: 15px !important; }
-  .ns-add-page { padding: 14px 16px !important; border-radius: 0 !important; font-size: 14px !important; border-top: 1px solid var(--divider); margin-top: auto; }
-  /* Subpages indent less on mobile */
+  .ns-add-page { padding: 14px 16px !important; border-radius: 0 !important; font-size: 14px !important; border-top: 1px solid var(--divider) !important; margin-top: auto; }
   .ns-subpages { padding-left: 16px !important; }
+
   /* Editor area */
-  .notes-header { padding: 12px 16px 10px !important; border-bottom: 1px solid var(--divider); }
-  .notes-toolbar { padding: 8px 12px !important; flex-wrap: wrap !important; gap: 6px !important; overflow-x: auto; }
-  .ntt-btn { padding: 5px 8px !important; font-size: 11px !important; min-height: 30px !important; }
-  .doc-editor { padding: 20px 16px 100px !important; max-width: 100% !important; font-size: 15px !important; line-height: 1.7 !important; }
-  .board-wrap { padding: 12px 12px 100px !important; gap: 12px !important; overflow-x: auto !important; flex-direction: row !important; }
+  .mob-notes-back { display: flex !important; flex-shrink: 0; }
+  .notes-header { padding: 10px 14px 10px !important; border-bottom: 1px solid var(--divider) !important; flex-shrink: 0 !important; }
+  .notes-header-left { gap: 8px !important; }
+  .notes-header-right { gap: 4px !important; flex-wrap: wrap !important; }
+  .nh-title { font-size: 18px !important; }
+  .view-toggle { gap: 2px !important; }
+  .vt-btn { padding: 4px 8px !important; font-size: 11px !important; }
+  .notes-toolbar {
+    padding: 6px 10px !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    flex-shrink: 0 !important;
+    border-bottom: 1px solid var(--divider) !important;
+  }
+  .notes-toolbar::-webkit-scrollbar { display: none !important; }
+  .ntt-btn { padding: 5px 7px !important; font-size: 11px !important; min-height: 28px !important; touch-action: manipulation !important; }
+  .ntt-sep { margin: 0 2px !important; }
+  /* Content scrolls */
+  .notes-shell.mob-page-open .notes-main > .notes-page-view {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+  }
+  .notes-shell.mob-page-open .notes-main > .notes-page-view > div:last-child {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .doc-editor {
+    padding: 16px 16px 120px !important;
+    max-width: 100% !important;
+    font-size: 15px !important;
+    line-height: 1.75 !important;
+    min-height: 200px !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    touch-action: manipulation !important;
+    cursor: text !important;
+  }
+  .board-wrap { padding: 12px 10px 80px !important; gap: 10px !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
   .board-col { min-width: 240px !important; max-width: 260px !important; flex-shrink: 0 !important; }
   .table-wrap { padding: 0 !important; overflow-x: auto !important; }
-  .notes-header-right { gap: 6px !important; }
-  .vt-btn { padding: 5px 10px !important; font-size: 12px !important; }
-  .notes-page-title-input { font-size: 22px !important; }
-  /* Back button — shown on mobile in editor */
-  .mob-notes-back { display: flex !important; }
 
   /* ── Misc ── */
   .grid2,.g2 { grid-template-columns: 1fr !important; }
@@ -3732,17 +3963,24 @@ function notesOpenPage(pageId){
   const page = _notes.pages.find(p=>p.id===pageId);
   if(!page) return;
   _curView = page.type==='board' ? 'board' : page.type==='table' ? 'table' : 'doc';
-  renderPageTree();
-  renderNotesMain();
-  // Mobile: switch from list view to editor view
-  if(window.innerWidth <= 768){
+  // Mobile: add mob-page-open BEFORE rendering so CSS is applied during render
+  const isMob = window.innerWidth <= 768;
+  if(isMob){
     const shell = document.querySelector('.notes-shell');
     if(shell) shell.classList.add('mob-page-open');
     const backLabel = document.getElementById('mob-notes-back-label');
     if(backLabel) backLabel.textContent = page.title || 'All pages';
-    // Scroll editor to top
-    const main = document.getElementById('notes-main');
-    if(main) main.scrollTop = 0;
+  }
+  renderPageTree();
+  renderNotesMain();
+  // Scroll to top
+  if(isMob){
+    setTimeout(()=>{
+      const main = document.getElementById('notes-main');
+      if(main) main.scrollTop = 0;
+      const editor = document.querySelector('.doc-editor');
+      if(editor) editor.scrollTop = 0;
+    }, 50);
   }
 }
 
@@ -3762,7 +4000,7 @@ function renderNotesMain(){
 
   const view = document.createElement('div');
   view.className = 'notes-page-view';
-  view.style.cssText='display:flex;flex-direction:column;flex:1;overflow:hidden;';
+  view.style.cssText='display:flex;flex-direction:column;flex:1;min-height:0;';
 
   // Header
   const header = document.createElement('div');
@@ -3811,7 +4049,7 @@ function renderNotesMain(){
 
   // View content
   const content = document.createElement('div');
-  content.style.cssText='flex:1;overflow-y:auto;display:flex;flex-direction:column;';
+  content.style.cssText='flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0;-webkit-overflow-scrolling:touch;';
   if(_curView==='doc')  content.appendChild(buildDocView(page));
   else if(_curView==='board') content.appendChild(buildBoardView(page));
   else content.appendChild(buildTableView(page));
@@ -3841,103 +4079,169 @@ function notesUpdateTitle(val){
   renderPageTree();
 }
 
-/* ── DOC VIEW ────────────────────────────────────────────────────── */
+// ── INJECT FLOATING TOOLBAR ──
+const ftHTML = `
+  <div class="floating-toolbar" id="floating-toolbar">
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('bold');" title="Bold"><b>B</b></button>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('italic');" title="Italic"><i>I</i></button>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('underline');" title="Underline"><u>U</u></button>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('strikeThrough');" title="Strikethrough"><s>S</s></button>
+    <div class="ft-sep"></div>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('formatBlock', false, 'h2');" title="Heading 2">H2</button>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('formatBlock', false, 'h3');" title="Heading 3">H3</button>
+    <button class="ft-btn" onmousedown="event.preventDefault(); document.execCommand('formatBlock', false, 'blockquote');" title="Quote">❝</button>
+    <div class="ft-sep"></div>
+    <button class="ft-btn" onmousedown="event.preventDefault(); let url=prompt('Link URL:'); if(url) document.execCommand('createLink', false, url);" title="Link">🔗</button>
+  </div>
+`;
+document.body.insertAdjacentHTML('beforeend', ftHTML);
+
+// ── SELECTION LISTENER FOR FLOATING TOOLBAR ──
+document.addEventListener('selectionchange', () => {
+  const ft = document.getElementById('floating-toolbar');
+  const sel = window.getSelection();
+  
+  if (!sel || sel.isCollapsed || !sel.rangeCount) {
+    ft.classList.remove('active');
+    return;
+  }
+  
+  const editor = document.querySelector('.doc-editor');
+  if (!editor || !editor.contains(sel.anchorNode)) {
+    ft.classList.remove('active');
+    return;
+  }
+  
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  
+  // Position above the selected text, centered
+  ft.style.top = (rect.top - 42) + 'px';
+  ft.style.left = (rect.left + (rect.width / 2)) + 'px';
+  ft.classList.add('active');
+});
+
+/* ── DOC VIEW WITH STICKY NOTION TOOLBAR ── */
 function buildDocView(page){
   const wrap = document.createElement('div');
-  wrap.style.flex='1';
+  wrap.style.cssText = 'flex:1; display:flex; flex-direction:column; align-items:center; position:relative;';
 
-  // Toolbar — full formatting suite
+  const inner = document.createElement('div');
+  inner.style.cssText = 'width:100%; max-width:800px; display:flex; flex-direction:column; flex:1; position:relative;';
+
+  // 1. Build the Sticky Formatting Bar
   const tb = document.createElement('div');
-  tb.className='notes-toolbar';
-
-  // Helper to add button
-  const addBtn=(label,title,fn,style='')=>{
-    const b=document.createElement('button');
-    b.className='ntt-btn';b.title=title;b.innerHTML=label;
-    if(style)b.style.cssText=style;
-    b.onmousedown=e=>{e.preventDefault();fn();};
-    tb.appendChild(b);return b;
+  tb.className = 'notion-toolbar';
+  
+  const addBtn = (icon, title, cmd, val=false) => {
+    const b = document.createElement('button');
+    b.className = 'notion-tb-btn';
+    b.innerHTML = icon;
+    b.title = title;
+    b.onmousedown = (e) => { 
+      e.preventDefault(); 
+      document.execCommand(cmd, false, val); 
+    };
+    tb.appendChild(b);
   };
-  const addSep=()=>tb.insertAdjacentHTML('beforeend','<span class="ntt-sep"></span>');
+  const addSep = () => { 
+    const s = document.createElement('div'); 
+    s.className = 'notion-tb-sep'; 
+    tb.appendChild(s); 
+  };
 
-  // ── Text style ──
-  addBtn('<b>B</b>','Bold (Ctrl+B)',()=>document.execCommand('bold'));
-  addBtn('<i>I</i>','Italic (Ctrl+I)',()=>document.execCommand('italic'));
-  addBtn('<u>U</u>','Underline (Ctrl+U)',()=>document.execCommand('underline'));
-  addBtn('<s>S</s>','Strikethrough',()=>document.execCommand('strikeThrough'));
+  // Text Styles
+  addBtn('<b>B</b>', 'Bold', 'bold');
+  addBtn('<i>I</i>', 'Italic', 'italic');
+  addBtn('<u>U</u>', 'Underline', 'underline');
+  addBtn('<s>S</s>', 'Strikethrough', 'strikeThrough');
+  addSep();
+  
+  // Blocks
+  addBtn('H1', 'Heading 1', 'formatBlock', 'h1');
+  addBtn('H2', 'Heading 2', 'formatBlock', 'h2');
+  addBtn('H3', 'Heading 3', 'formatBlock', 'h3');
+  addSep();
+  
+  // Lists
+  addBtn('•', 'Bullet List', 'insertUnorderedList');
+  addBtn('1.', 'Numbered List', 'insertOrderedList');
+  addBtn('❝', 'Quote', 'formatBlock', 'blockquote');
   addSep();
 
-  // ── Headings ──
-  addBtn('H1','Heading 1',()=>document.execCommand('formatBlock',false,'h1'),'font-size:11px;font-weight:700');
-  addBtn('H2','Heading 2',()=>document.execCommand('formatBlock',false,'h2'),'font-size:11px;font-weight:700');
-  addBtn('H3','Heading 3',()=>document.execCommand('formatBlock',false,'h3'),'font-size:11px;font-weight:700');
-  addSep();
+  // Code Block
+  const codeBtn = document.createElement('button');
+  codeBtn.className = 'notion-tb-btn'; 
+  codeBtn.innerHTML = '<>'; 
+  codeBtn.title = 'Code Block';
+  codeBtn.onmousedown = (e) => { 
+    e.preventDefault(); 
+    document.execCommand('formatBlock', false, 'pre'); 
+  };
+  tb.appendChild(codeBtn);
 
-  // ── Lists ──
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="4" r="1.5" fill="currentColor"/><circle cx="3" cy="8" r="1.5" fill="currentColor"/><circle cx="3" cy="12" r="1.5" fill="currentColor"/><path d="M6 4h8M6 8h8M6 12h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>','Bullet list',()=>document.execCommand('insertUnorderedList'));
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><text x="1" y="5" font-size="5" fill="currentColor">1.</text><text x="1" y="9" font-size="5" fill="currentColor">2.</text><text x="1" y="13" font-size="5" fill="currentColor">3.</text><path d="M7 4h7M7 8h7M7 12h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>','Numbered list',()=>document.execCommand('insertOrderedList'));
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M8 5h6M8 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="2" y="9" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>','Checkbox (todo)',()=>{const s=window.getSelection();if(s&&s.rangeCount)insertTodo(s.getRangeAt(0).startContainer);});
-  addSep();
+  // Todo Checkbox
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'notion-tb-btn'; 
+  checkBtn.innerHTML = '☑'; 
+  checkBtn.title = 'To-do';
+  checkBtn.onmousedown = (e) => { 
+    e.preventDefault(); 
+    const s = window.getSelection(); 
+    if(s && s.rangeCount) insertTodo(s.getRangeAt(0).startContainer); 
+  };
+  tb.appendChild(checkBtn);
 
-  // ── Block types ──
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3h1v10H3z" fill="var(--accent)"/><path d="M6 5h8M6 8h6M6 11h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Blockquote',()=>document.execCommand('formatBlock',false,'blockquote'));
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>','Code block',()=>{
-    const pre=document.createElement('pre');pre.contentEditable='true';pre.textContent='';
-    const s=window.getSelection();if(s&&s.rangeCount)s.getRangeAt(0).insertNode(pre);
-    const nr=document.createRange();nr.setStart(pre,0);nr.collapse(true);
-    s.removeAllRanges();s.addRange(nr);
-  });
-  addBtn('—','Divider',()=>document.execCommand('insertHorizontalRule'));
-  addSep();
+  // 2. Build the Editor
+  const editor = document.createElement('div');
+  editor.className = 'doc-editor';
+  editor.id = 'doc-editor';
+  editor.contentEditable = 'true';
+  editor.setAttribute('placeholder','Press / for commands, or type # for headings...');
+  editor.innerHTML = page.content || '<div><br></div>';
 
-  // ── Indent/outdent ──
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 8h8M6 12h8M2 8l3-2v4l-3-2z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>','Indent',()=>document.execCommand('indent'));
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h8M14 8l-3-2v4l3-2z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>','Outdent',()=>document.execCommand('outdent'));
-  addSep();
-
-  // ── Alignment (useful for headings) ──
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 7h8M2 10h12M2 13h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Align left',()=>document.execCommand('justifyLeft'));
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 7h8M2 10h12M4 13h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Align center',()=>document.execCommand('justifyCenter'));
-  addSep();
-
-  // ── Clear / remove format ──
-  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M9 3l4 4-6 6H3l4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>','Clear formatting',()=>document.execCommand('removeFormat'));
-  editor.addEventListener('input',()=>{
+  editor.addEventListener('input', () => {
     page.content = editor.innerHTML;
-    page.updatedAt=Date.now();
+    page.updatedAt = Date.now();
     notesSave();
   });
-  editor.addEventListener('keydown', e=>docEditorKey(e, editor, page));
-  editor.addEventListener('keyup', e=>checkSlashMenu(e, editor));
-  wrap.appendChild(editor);
+  
+  editor.addEventListener('keydown', e => docEditorKey(e, editor, page));
+  editor.addEventListener('keyup', e => checkSlashMenu(e, editor));
+  
+  inner.appendChild(tb);
+  inner.appendChild(editor);
+  wrap.appendChild(inner);
+  
   return wrap;
 }
 
 let _slashMenu=null, _slashRange=null;
 
 function docEditorKey(e, editor, page){
-  // Slash menu navigation
+  // 1. Slash menu navigation
   if(_slashMenu){
     if(e.key==='Enter'){e.preventDefault();const f=_slashMenu.querySelector('.focused');if(f)f.click();else closeSlashMenu();return;}
     if(e.key==='ArrowDown'){e.preventDefault();navigateSlash(1);return;}
     if(e.key==='ArrowUp'){e.preventDefault();navigateSlash(-1);return;}
     if(e.key==='Escape'){closeSlashMenu();return;}
   }
+  
   const sel=window.getSelection();
   if(!sel||!sel.rangeCount)return;
   const r=sel.getRangeAt(0);
 
-  // ── Enter key: continue or exit block types ──────────────
+  // 2. Handle Enter Key (Escaping Blocks & Todos)
   if(e.key==='Enter'&&!e.shiftKey){
-    // Continue todo list: if cursor in a .todo span, add new todo row
+    // Handle Todo Lists
     const todoDiv=getAncestor(r.startContainer,'.todo');
     if(todoDiv){
       e.preventDefault();
       const span=todoDiv.querySelector('span');
       const text=span?span.textContent:'';
       if(!text.trim()){
-        // Empty todo → exit: replace with plain paragraph
-        const p=document.createElement('div');p.textContent='​';
+        // Empty todo → exit: replace with plain div
+        const p=document.createElement('div');p.innerHTML='<br>';
         todoDiv.parentNode.insertBefore(p,todoDiv.nextSibling);
         todoDiv.remove();
         const nr=document.createRange();nr.setStart(p,0);nr.collapse(true);
@@ -3946,37 +4250,71 @@ function docEditorKey(e, editor, page){
         // Non-empty todo → create new todo row
         insertTodoAfter(todoDiv);
       }
-      page.content=editor.innerHTML;notesSave();
+      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
       return;
     }
-    // Continue blockquote: browser handles, just save
-    const bq=getAncestor(r.startContainer,'blockquote');
-    if(bq){
+
+    // Escape Headings and Blockquotes gracefully
+    const block=getAncestor(r.startContainer,'h1, h2, h3, blockquote');
+    if(block){
+      e.preventDefault();
+      const newDiv = document.createElement('div');
+      newDiv.innerHTML = '<br>';
+      block.parentNode.insertBefore(newDiv, block.nextSibling);
+      
+      const nr = document.createRange();
+      nr.setStart(newDiv, 0);
+      nr.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(nr);
+      
       setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
       return;
     }
   }
 
-  // ── Space/Enter markdown shortcuts ───────────────────────
-  if(e.key===' '||e.key==='Enter'){
+  // 3. Handle Space Key (Markdown Shortcuts)
+  if(e.key===' '){
     const node=r.startContainer;
     if(node.nodeType!==Node.TEXT_NODE)return;
+    
     const text=node.textContent.slice(0,r.startOffset);
     let matched=false;
-    if(text==='#'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(1);document.execCommand('formatBlock',false,'h1');matched=true;}
-    else if(text==='##'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(2);document.execCommand('formatBlock',false,'h2');matched=true;}
-    else if(text==='###'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(3);document.execCommand('formatBlock',false,'h3');matched=true;}
-    else if((text==='-'||text==='*')&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertUnorderedList');matched=true;}
-    else if(text==='1.'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertOrderedList');matched=true;}
-    else if(text==='>'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('formatBlock',false,'blockquote');matched=true;}
-    else if(text==='---'&&e.key==='Enter'){e.preventDefault();document.execCommand('insertHorizontalRule');matched=true;}
-    else if(text==='[]'&&e.key===' '){e.preventDefault();node.textContent='';insertTodo(node);matched=true;}
-    if(matched){page.content=editor.innerHTML;notesSave();}
+
+    // Headings
+    if(text==='#'){ e.preventDefault(); document.execCommand('formatBlock',false,'h1'); matched=true; }
+    else if(text==='##'){ e.preventDefault(); document.execCommand('formatBlock',false,'h2'); matched=true; }
+    else if(text==='###'){ e.preventDefault(); document.execCommand('formatBlock',false,'h3'); matched=true; }
+    // Lists
+    else if(text==='-'||text==='*'){ e.preventDefault(); document.execCommand('insertUnorderedList'); matched=true; }
+    else if(text==='1.'){ e.preventDefault(); document.execCommand('insertOrderedList'); matched=true; }
+    // Quotes & Todos
+    else if(text==='>'){ e.preventDefault(); document.execCommand('formatBlock',false,'blockquote'); matched=true; }
+    else if(text==='[]'){ e.preventDefault(); insertTodo(node); matched=true; }
+
+    if(matched){
+      // Clean up the markdown trigger characters
+      node.textContent = node.textContent.slice(r.startOffset);
+      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      return;
+    }
   }
 
-  // Save on any edit key
+  // Handle Markdown Horizontal Rule
+  if(e.key==='Enter'){
+    const node=r.startContainer;
+    if(node.nodeType===Node.TEXT_NODE && node.textContent.trim()==='---'){
+      e.preventDefault();
+      node.textContent = '';
+      document.execCommand('insertHorizontalRule');
+      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      return;
+    }
+  }
+
+  // Auto-save on standard typing
   if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){
-    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},100);
   }
 }
 
