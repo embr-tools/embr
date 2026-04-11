@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 <!-- ═══ SEO ═══ -->
 <title>Embr — Open Source · Free · Browser-based</title>
 <meta name="description" content="Embr is the browser homepage built for blockchain developers. Smart omnibar, contract bookmarks, live gas & price strip, ABI tools, 1000+ networks, and Notion-style notes — all in one tab."/>
@@ -216,6 +216,61 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
   .doc-editor {
     padding: 16px 20px 160px !important;
   }
+  /* Hide the desktop statusbar completely on mobile so it doesn't overlap the mobile nav */
+  .statusbar { 
+    display: none !important; 
+  }
+  /* ── FIX IOS AUTO-ZOOM & HORIZONTAL SCROLL ── */
+  input[type="text"], 
+  input[type="number"], 
+  textarea, 
+  select,
+  .home-search-input,
+  .cmdpal-input,
+  .term-input,
+  .cm-title {
+    font-size: 16px !important; /* Prevents iOS Safari from zooming in on focus */
+  }
+
+  /* Ensure suggestion dropdowns never push the screen width horizontally */
+  .home-suggestions, 
+  .tw-dropdown, 
+  .cmdpal,
+  .wallet-popup {
+    max-width: calc(100vw - 32px) !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Force long text (like addresses/hashes) to wrap instead of stretching */
+  .hs-item, 
+  .hs-name,
+  .cmdpal-item-name,
+  .cmdpal-item-desc {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  /* ── Sidebar overlay ── */
+  .sidebar {
+    position: fixed !important;
+    top: 0; left: 0; height: 100%;
+    width: 280px !important; 
+    z-index: 600 !important; /* Safely above the search bar's 500 */
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1) !important;
+    border-right: 1px solid var(--divider) !important;
+    padding: 16px 10px !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
+  }
+  .sidebar > * { opacity: 1 !important; pointer-events: auto !important; }
+  .sidebar.mob-open { transform: translateX(0) !important; }
+  .shell.sb-collapsed .sidebar > * { opacity: 1 !important; pointer-events: auto !important; }
+  
+  .sb-overlay { 
+    display: block; 
+    z-index: 590 !important; /* Just below the sidebar, but above the search bar */
+  }
+  
 }
 
 
@@ -3960,10 +4015,12 @@ function notesMobBack(){
 
 function notesOpenPage(pageId){
   _curPageId = pageId;
+  localStorage.setItem('embr_last_note_id', pageId); // Save last opened page
+  
   const page = _notes.pages.find(p=>p.id===pageId);
   if(!page) return;
   _curView = page.type==='board' ? 'board' : page.type==='table' ? 'table' : 'doc';
-  // Mobile: add mob-page-open BEFORE rendering so CSS is applied during render
+  
   const isMob = window.innerWidth <= 768;
   if(isMob){
     const shell = document.querySelector('.notes-shell');
@@ -3971,9 +4028,10 @@ function notesOpenPage(pageId){
     const backLabel = document.getElementById('mob-notes-back-label');
     if(backLabel) backLabel.textContent = page.title || 'All pages';
   }
+  
   renderPageTree();
   renderNotesMain();
-  // Scroll to top
+  
   if(isMob){
     setTimeout(()=>{
       const main = document.getElementById('notes-main');
@@ -3988,16 +4046,32 @@ function renderNotesMain(){
   const main = document.getElementById('notes-main');
   if(!main) return;
   const empty = document.getElementById('notes-empty');
+  
   if(!_curPageId){
-    if(empty) empty.style.display='flex';
+    if(empty) {
+      empty.style.display='flex';
+      // Dynamically update empty state wording
+      const hasPages = _notes.pages && _notes.pages.length > 0;
+      empty.innerHTML = `
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="opacity:.25">
+          <rect x="6" y="4" width="28" height="34" rx="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M12 13h16M12 20h12M12 27h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="notes-empty-title">${hasPages ? 'No page selected' : 'Welcome to Notes'}</div>
+        <div class="notes-empty-desc">${hasPages ? 'Select a page from the sidebar to view it, or create a new one.' : 'Create a new page to start writing, planning, or tracking tasks.'}</div>
+        <button class="btn btn-secondary" onclick="notesNewPage(null)">${hasPages ? 'Create a new page' : 'Create your first page'}</button>
+      `;
+    }
     main.querySelectorAll('.notes-page-view').forEach(el=>el.remove());
     return;
   }
+  
   if(empty) empty.style.display='none';
   main.querySelectorAll('.notes-page-view').forEach(el=>el.remove());
   const page = _notes.pages.find(p=>p.id===_curPageId);
   if(!page) return;
 
+  // ... (Keep the rest of your existing renderNotesMain function from here down)
   const view = document.createElement('div');
   view.className = 'notes-page-view';
   view.style.cssText='display:flex;flex-direction:column;flex:1;min-height:0;';
@@ -5306,32 +5380,38 @@ const VALID_TABS = ['home','interact','deploy','tools','networks','notes','price
 function showTab(t){
   if(!VALID_TABS.includes(t)) t = 'home';
 
-  // Update URL hash (no loop — guard with current value check)
   const newHash = '#' + t;
   if(location.hash !== newHash) history.replaceState(null, '', newHash);
 
-  // Activate panel + sidebar
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
   const panel = document.getElementById('panel-' + t);
   const nav   = document.getElementById('nav-' + t);
   if(panel) panel.classList.add('active');
   if(nav)   nav.classList.add('active');
-  // Sync mobile bottom nav
+  
   document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
   const mbn=document.getElementById('mbn-'+t);
   if(mbn)mbn.classList.add('active');
-  // Always scroll main to top when switching tabs
+  
   const mainEl = document.querySelector('.main');
   if(mainEl) mainEl.scrollTop = 0;
 
-  // Per-tab side effects
   if(t === 'networks') loadNetworks();
   if(t === 'notes'){
     if(window.innerWidth <= 768){
-      // Mobile: always start at page list
       document.querySelector('.notes-shell')?.classList.remove('mob-page-open');
       _curPageId = null;
+    } else {
+      // Auto-open last page on desktop
+      if (!_curPageId && _notes.pages && _notes.pages.length > 0) {
+        const lastId = localStorage.getItem('embr_last_note_id');
+        if (lastId && _notes.pages.some(p => p.id === lastId)) {
+          _curPageId = lastId;
+        } else {
+          _curPageId = _notes.pages[0].id;
+        }
+      }
     }
     renderPageTree();
     renderNotesMain();
