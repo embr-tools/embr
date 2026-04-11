@@ -130,7 +130,7 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .tb-btn-primary:hover{background:var(--accent-hover);}
 
 /* ── SIDEBAR ── */
-.sidebar{background:var(--surface);border-right:1px solid var(--divider);padding:12px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden;min-width:0;transition:width .22s,padding .22s,border-color .22s;}
+.sidebar{background:var(--surface);border-right:1px solid var(--divider);padding:12px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden;min-width:0;transition:width .22s,padding .22s,border-color .22s;grid-column:1;grid-row:2;}
 .sb-section-label{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:8px 10px 4px;}
 .sb-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--r2);cursor:pointer;font-size:13px;font-weight:400;color:var(--text2);transition:background .12s,color .12s;user-select:none;}
 .sb-item:hover{background:var(--hover);color:var(--text);}
@@ -149,7 +149,7 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .ext-link:hover{background:var(--surface3);color:var(--text);}
 
 /* ── MAIN ── */
-.main{overflow-y:auto;background:var(--page);min-height:0;}
+.main{overflow-y:auto;background:var(--page);min-height:0;grid-column:2;grid-row:2;}
 .panel{display:none;animation:panIn .2s var(--ease);}
 
 
@@ -633,7 +633,8 @@ select{cursor:pointer;font-family:var(--ui);}
 .doc-editor em{font-style:italic;color:var(--text2);}
 .doc-editor a{color:var(--accent);text-decoration:underline;}
 /* Notion-style checklist */
-.doc-editor .todo{display:flex;align-items:flex-start;gap:8px;margin:2px 0;}
+.doc-editor .todo{display:flex;align-items:flex-start;gap:8px;margin:3px 0;padding:1px 0;cursor:text;}
+.doc-editor .todo input[type=checkbox]{cursor:pointer;margin-top:4px;}
 .doc-editor .todo input[type=checkbox]{width:15px;height:15px;margin-top:3px;accent-color:var(--accent);flex-shrink:0;}
 .doc-editor .todo.done span{text-decoration:line-through;color:var(--text3);}
 /* Slash menu */
@@ -969,16 +970,7 @@ select{cursor:pointer;font-family:var(--ui);}
 }
 
 /* ── Home: full-width flex centering ── */
-.home-wrap {
-  min-height: calc(100vh - 44px - 24px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 52px 24px 80px !important;
-  position: relative;
-  overflow: visible;
-}
+
 
 /* ── Settings + Prices: centered content block ── */
 .settings-wrap {
@@ -994,69 +986,155 @@ select{cursor:pointer;font-family:var(--ui);}
 
 /* ── Mobile ≤768px ── */
 @media (max-width: 768px) {
-  .shell { grid-template-columns: 0 1fr !important; --sb-w: 0px; }
+  /* ── Grid ── */
+  .shell { grid-template-columns: 0 1fr !important; --sb-w: 0px; grid-template-rows: 48px 1fr !important; }
+
+  /* ── Sidebar overlay ── */
   .sidebar {
     position: fixed !important;
     top: 0; left: 0; height: 100%;
-    width: 260px !important; z-index: 200;
+    width: 280px !important; z-index: 300;
     transform: translateX(-100%);
-    transition: transform .22s cubic-bezier(.4,0,.2,1) !important;
+    transition: transform .25s cubic-bezier(.4,0,.2,1) !important;
     border-right: 1px solid var(--divider) !important;
-    padding: 12px 8px !important;
+    padding: 16px 10px !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
   }
   .sidebar > * { opacity: 1 !important; pointer-events: auto !important; }
-  .sidebar.mob-open { transform: translateX(0); }
+  .sidebar.mob-open { transform: translateX(0) !important; }
   .shell.sb-collapsed .sidebar > * { opacity: 1 !important; pointer-events: auto !important; }
   .sb-overlay { display: block; }
-  .topbar { padding: 0 10px; gap: 8px; }
-  .brand-badge, .net-chip, .addr-tag { display: none; }
 
-  /* Standard panels on mobile */
+  /* ── Topbar ── */
+  .topbar { padding: 0 12px; gap: 10px; height: 48px; }
+  .brand-badge, .addr-tag { display: none; }
+  .net-chip span:last-child { display: none; } /* hide network label, keep dot */
+
+  /* ── Main scrolls, panels fill ── */
+  .main { overflow-y: auto; grid-column: 1 / -1 !important; grid-row: 2 !important; }
+  .panel.active { min-height: calc(100vh - 48px - 56px) !important; padding-bottom: 70px !important; }
+
+  /* ── Standard panels ── */
   #panel-interact.active, #panel-deploy.active,
   #panel-tools.active, #panel-donate.active, #panel-networks.active {
-    padding: 20px 16px 80px !important;
+    padding: 16px 14px 80px !important;
     max-width: 100% !important;
   }
-  /* Home */
-  .home-wrap { padding: 32px 16px 80px !important; }
-  .home-title { font-size: 24px !important; }
-  .home-actions { grid-template-columns: repeat(2,1fr) !important; max-width: 100% !important; }
-  .home-search-wrap { max-width: 100%; }
+
+  /* ── Home ── */
+  .home-wrap { padding: 28px 14px 80px !important; }
+  .home-title { font-size: 22px !important; line-height: 1.3 !important; }
+  .home-eyebrow { font-size: 10px !important; }
+  .home-subtitle { font-size: 13px !important; }
+  .home-actions { grid-template-columns: repeat(2,1fr) !important; max-width: 100% !important; gap: 8px !important; }
+  .ha-card { padding: 12px !important; }
+  .ha-card-icon { width: 26px !important; height: 26px !important; }
+  .ha-card-desc { display: none; }
+  .home-search-wrap { max-width: 100%; margin-bottom: 20px !important; }
   .home-search-kbd { display: none; }
+  .home-search-input { font-size: 14px !important; }
   .bookmarks-row,.pinboard,.home-divider,.home-recent { max-width: 100% !important; }
-  /* Settings/Prices */
-  .settings-wrap { padding: 20px 16px 80px !important; }
-  /* Notes */
-  .notes-shell { grid-template-columns: 1fr !important; }
-  .notes-sidebar {
-    position: fixed !important; top: 44px; left: 0;
-    height: calc(100% - 44px); width: 260px; z-index: 150;
-    transform: translateX(-100%);
-    transition: transform .22s cubic-bezier(.4,0,.2,1);
-    background: var(--surface); border-right: 1px solid var(--divider);
-    padding: 10px 6px;
-  }
-  .notes-sidebar.mob-open { transform: translateX(0); }
-  .notes-header { padding: 14px 16px 10px !important; }
-  .notes-toolbar { padding: 6px 16px !important; }
-  .doc-editor { padding: 20px 16px 80px !important; max-width: 100% !important; }
-  .board-wrap { padding: 12px 12px 40px !important; }
-  .board-col { min-width: 230px !important; }
-  .table-wrap { padding: 12px 12px 40px !important; }
-  /* Misc */
-  .grid2,.g2 { grid-template-columns: 1fr !important; }
+  .home-divider { margin-bottom: 10px !important; }
+
+  /* ── Settings / Prices ── */
+  .settings-wrap { padding: 16px 14px 100px !important; }
   .settings-row { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 0; }
   .settings-right { margin-left: 0; width: 100%; }
   .s-input { width: 100% !important; }
-  .term-drawer { height: 250px; }
-  .tool-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .tool-tab { white-space: nowrap; }
+  .accent-swatches { gap: 8px !important; }
+  .accent-swatch { width: 26px !important; height: 26px !important; }
+  .gas-tiers { grid-template-columns: repeat(3,1fr); }
   .tw-grid { grid-template-columns: repeat(2,1fr) !important; }
+
+  /* ── Notes — Notion-style mobile ── */
+  /* notes-shell: full width single column, fills space below topbar */
+  .notes-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 48px) !important;
+    grid-template-columns: none !important;
+    overflow: hidden !important;
+  }
+  /* Page list: shown by default on mobile, hidden when page open */
+  .notes-sidebar {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--divider);
+    padding: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transition: none !important;
+  }
+  /* When page is open on mobile, hide page list, show editor */
+  .notes-shell.mob-page-open .notes-sidebar { display: none !important; }
+  .notes-shell.mob-page-open .notes-main { display: flex !important; }
+  /* Default: show page list, hide editor */
+  .notes-main { display: none !important; }
+  /* Page list header */
+  .ns-header { padding: 16px 16px 8px !important; }
+  .ns-title { font-size: 14px !important; letter-spacing: 0 !important; color: var(--text) !important; font-weight: 600 !important; }
+  /* Page list items — bigger touch targets */
+  .ns-page { padding: 12px 16px !important; border-radius: 0 !important; border-bottom: 1px solid var(--divider); font-size: 15px !important; }
+  .ns-page-icon { font-size: 18px !important; width: 28px !important; }
+  .ns-page-name { font-size: 15px !important; }
+  .ns-add-page { padding: 14px 16px !important; border-radius: 0 !important; font-size: 14px !important; border-top: 1px solid var(--divider); margin-top: auto; }
+  /* Subpages indent less on mobile */
+  .ns-subpages { padding-left: 16px !important; }
+  /* Editor area */
+  .notes-header { padding: 12px 16px 10px !important; border-bottom: 1px solid var(--divider); }
+  .notes-toolbar { padding: 8px 12px !important; flex-wrap: wrap !important; gap: 6px !important; overflow-x: auto; }
+  .ntt-btn { padding: 5px 8px !important; font-size: 11px !important; min-height: 30px !important; }
+  .doc-editor { padding: 20px 16px 100px !important; max-width: 100% !important; font-size: 15px !important; line-height: 1.7 !important; }
+  .board-wrap { padding: 12px 12px 100px !important; gap: 12px !important; overflow-x: auto !important; flex-direction: row !important; }
+  .board-col { min-width: 240px !important; max-width: 260px !important; flex-shrink: 0 !important; }
+  .table-wrap { padding: 0 !important; overflow-x: auto !important; }
+  .notes-header-right { gap: 6px !important; }
+  .vt-btn { padding: 5px 10px !important; font-size: 12px !important; }
+  .notes-page-title-input { font-size: 22px !important; }
+  /* Back button — shown on mobile in editor */
+  .mob-notes-back { display: flex !important; }
+
+  /* ── Misc ── */
+  .grid2,.g2 { grid-template-columns: 1fr !important; }
+  .term-drawer { height: 240px; }
+  .tool-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .tool-tab { white-space: nowrap; font-size: 11px; padding: 6px 10px; }
   .sb-link { display: none; }
+  .statusbar { height: 20px; font-size: 10px; padding: 0 10px; }
   .ntable th:nth-child(3),.ntable td:nth-child(3),
   .ntable th:nth-child(4),.ntable td:nth-child(4) { display: none; }
   .notes-mob-menu { display: flex !important; }
+  .kcard-desc { display: none; }
+  .prop-block { font-size: 12px; }
+  .wallet-popup { width: calc(100vw - 28px); right: -50px; }
+  .page-title { font-size: 20px !important; }
+  .page-desc { font-size: 12px !important; }
+
+  /* Bottom nav visibility */
+  .mob-nav { display: flex !important; }
 }
+
+/* Mobile bottom nav — hidden on desktop */
+.mob-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+  background: var(--surface); border-top: 1px solid var(--divider);
+  z-index: 100; align-items: stretch;
+}
+.mob-nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; cursor: pointer;
+  background: none; border: none; color: var(--text3);
+  font-size: 9px; font-family: var(--ui); font-weight: 500;
+  padding: 6px 2px; transition: color .15s;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.mob-nav-btn.active { color: var(--accent); }
+.mob-nav-btn svg { flex-shrink: 0; }
 
 /* ── Tablet 769–1024px ── */
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -1064,11 +1142,13 @@ select{cursor:pointer;font-family:var(--ui);}
   #panel-interact.active, #panel-deploy.active,
   #panel-tools.active, #panel-donate.active, #panel-networks.active {
     padding: 28px 28px 80px !important;
+    max-width: 100% !important;
   }
   .settings-wrap { padding: 28px 28px 80px !important; }
   .home-actions { grid-template-columns: repeat(2,1fr) !important; }
+  .home-wrap { padding: 40px 20px 80px !important; }
 }
-</style>
+</style></style>
 </head>
 <body>
 
@@ -1828,6 +1908,7 @@ contract MyContract { }"></textarea>
     <div class="ns-header">
       <span class="ns-title">Pages</span>
       <div class="ns-actions">
+        <button class="ns-new-btn-mob" onclick="notesNewPage(null)" title="New page">+</button>
         <button class="ns-btn" onclick="notesNewPage(null)" title="New page">+</button>
         <button class="ns-btn" onclick="notesExport()" title="Export JSON">↓</button>
         <button class="ns-btn" onclick="notesImport()" title="Import JSON">↑</button>
@@ -1842,8 +1923,12 @@ contract MyContract { }"></textarea>
   </div>
 
   <!-- Main content area -->
-  <div class="notes-mob-menu" id="notes-mob-menu"><button class="notes-mob-btn" onclick="toggleNotesMobSidebar()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v2H3zM3 7h7v2H3zM3 11h5v2H3z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button><span id="notes-mob-title" style="font-size:13px;color:var(--text2);font-weight:500;flex:1">Notes</span></div>
+  <div class="notes-mob-menu" id="notes-mob-menu" style="display:none!important"><button class="notes-mob-btn" onclick="toggleNotesMobSidebar()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v2H3zM3 7h7v2H3zM3 11h5v2H3z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button><span id="notes-mob-title" style="font-size:13px;color:var(--text2);font-weight:500;flex:1">Notes</span></div>
 <div class="notes-main" id="notes-main">
+  <div class="mob-notes-back" id="mob-notes-back" onclick="notesMobBack()">
+    <svg class="mob-notes-back-icon" width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="mob-notes-back-label">All pages</span>
+  </div>
     <div class="notes-empty" id="notes-empty">
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="opacity:.25"><rect x="6" y="4" width="28" height="34" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M12 13h16M12 20h12M12 27h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <div class="notes-empty-title">No page selected</div>
@@ -2271,6 +2356,39 @@ contract MyContract { }"></textarea>
 </div>
 <!-- ── /TERMINAL ── -->
 
+
+
+<!-- Mobile bottom nav -->
+<nav class="mob-nav" id="mob-nav">
+  <button class="mob-nav-btn active" id="mbn-home" onclick="showTab('home')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    Home
+  </button>
+  <button class="mob-nav-btn" id="mbn-interact" onclick="showTab('interact')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity=".4"/></svg>
+    Interact
+  </button>
+  <button class="mob-nav-btn" id="mbn-deploy" onclick="showTab('deploy')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M8 2L5 5M8 2l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".5"/></svg>
+    Deploy
+  </button>
+  <button class="mob-nav-btn" id="mbn-tools" onclick="showTab('tools')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h7M3 12h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    ABI
+  </button>
+  <button class="mob-nav-btn" id="mbn-networks" onclick="showTab('networks')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 2.5C6.5 4 5.5 5.9 5.5 8s1 4 2.5 5.5M8 2.5C9.5 4 10.5 5.9 10.5 8s-1 4-2.5 5.5M2.5 8h11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    Chains
+  </button>
+  <button class="mob-nav-btn" id="mbn-notes" onclick="showTab('notes')">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v2H3zM3 7h7v2H3zM3 11h5v2H3z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    Notes
+  </button>
+  <button class="mob-nav-btn" id="mbn-more" onclick="toggleSidebar()">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
+    More
+  </button>
+</nav>
 
 <div class="statusbar">
   <span class="sb-dot" id="sb-dot"></span>
@@ -3601,14 +3719,31 @@ function notesRenamePage(pageId){
 }
 
 /* ── OPEN PAGE ───────────────────────────────────────────────────── */
+function notesMobBack(){
+  // Return to page list on mobile
+  const shell = document.querySelector('.notes-shell');
+  if(shell) shell.classList.remove('mob-page-open');
+  _curPageId = null;
+  renderPageTree();
+}
+
 function notesOpenPage(pageId){
   _curPageId = pageId;
   const page = _notes.pages.find(p=>p.id===pageId);
   if(!page) return;
-  // Default view based on page type
   _curView = page.type==='board' ? 'board' : page.type==='table' ? 'table' : 'doc';
   renderPageTree();
   renderNotesMain();
+  // Mobile: switch from list view to editor view
+  if(window.innerWidth <= 768){
+    const shell = document.querySelector('.notes-shell');
+    if(shell) shell.classList.add('mob-page-open');
+    const backLabel = document.getElementById('mob-notes-back-label');
+    if(backLabel) backLabel.textContent = page.title || 'All pages';
+    // Scroll editor to top
+    const main = document.getElementById('notes-main');
+    if(main) main.scrollTop = 0;
+  }
 }
 
 function renderNotesMain(){
@@ -3711,37 +3846,62 @@ function buildDocView(page){
   const wrap = document.createElement('div');
   wrap.style.flex='1';
 
-  // Toolbar
+  // Toolbar — full formatting suite
   const tb = document.createElement('div');
   tb.className='notes-toolbar';
-  const fmts=[['B','bold'],['I','italic'],['U','underline'],['S','strikethrough']];
-  fmts.forEach(([lbl,cmd])=>{
-    const b=document.createElement('button');b.className='ntt-btn';b.textContent=lbl;
-    if(lbl==='B')b.style.fontWeight='700';
-    if(lbl==='I')b.style.fontStyle='italic';
-    b.onmousedown=e=>{e.preventDefault();document.execCommand(cmd);};
-    tb.appendChild(b);
-  });
-  tb.insertAdjacentHTML('beforeend','<span class="ntt-sep"></span>');
-  ['H1','H2','H3'].forEach(h=>{
-    const b=document.createElement('button');b.className='ntt-btn';b.textContent=h;
-    b.onmousedown=e=>{e.preventDefault();document.execCommand('formatBlock',false,'<'+h.toLowerCase()+'>');}
-    tb.appendChild(b);
-  });
-  tb.insertAdjacentHTML('beforeend','<span class="ntt-sep"></span>');
-  const ulb=document.createElement('button');ulb.className='ntt-btn';ulb.textContent='• List';
-  ulb.onmousedown=e=>{e.preventDefault();document.execCommand('insertUnorderedList');};tb.appendChild(ulb);
-  const olb=document.createElement('button');olb.className='ntt-btn';olb.textContent='1. List';
-  olb.onmousedown=e=>{e.preventDefault();document.execCommand('insertOrderedList');};tb.appendChild(olb);
 
-  wrap.appendChild(tb);
+  // Helper to add button
+  const addBtn=(label,title,fn,style='')=>{
+    const b=document.createElement('button');
+    b.className='ntt-btn';b.title=title;b.innerHTML=label;
+    if(style)b.style.cssText=style;
+    b.onmousedown=e=>{e.preventDefault();fn();};
+    tb.appendChild(b);return b;
+  };
+  const addSep=()=>tb.insertAdjacentHTML('beforeend','<span class="ntt-sep"></span>');
 
-  // Editor
-  const editor = document.createElement('div');
-  editor.className='doc-editor';
-  editor.setAttribute('contenteditable','true');
-  editor.setAttribute('placeholder','Write something… type / for commands');
-  editor.innerHTML = page.content||'';
+  // ── Text style ──
+  addBtn('<b>B</b>','Bold (Ctrl+B)',()=>document.execCommand('bold'));
+  addBtn('<i>I</i>','Italic (Ctrl+I)',()=>document.execCommand('italic'));
+  addBtn('<u>U</u>','Underline (Ctrl+U)',()=>document.execCommand('underline'));
+  addBtn('<s>S</s>','Strikethrough',()=>document.execCommand('strikeThrough'));
+  addSep();
+
+  // ── Headings ──
+  addBtn('H1','Heading 1',()=>document.execCommand('formatBlock',false,'h1'),'font-size:11px;font-weight:700');
+  addBtn('H2','Heading 2',()=>document.execCommand('formatBlock',false,'h2'),'font-size:11px;font-weight:700');
+  addBtn('H3','Heading 3',()=>document.execCommand('formatBlock',false,'h3'),'font-size:11px;font-weight:700');
+  addSep();
+
+  // ── Lists ──
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="4" r="1.5" fill="currentColor"/><circle cx="3" cy="8" r="1.5" fill="currentColor"/><circle cx="3" cy="12" r="1.5" fill="currentColor"/><path d="M6 4h8M6 8h8M6 12h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>','Bullet list',()=>document.execCommand('insertUnorderedList'));
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><text x="1" y="5" font-size="5" fill="currentColor">1.</text><text x="1" y="9" font-size="5" fill="currentColor">2.</text><text x="1" y="13" font-size="5" fill="currentColor">3.</text><path d="M7 4h7M7 8h7M7 12h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>','Numbered list',()=>document.execCommand('insertOrderedList'));
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M8 5h6M8 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="2" y="9" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>','Checkbox (todo)',()=>{const s=window.getSelection();if(s&&s.rangeCount)insertTodo(s.getRangeAt(0).startContainer);});
+  addSep();
+
+  // ── Block types ──
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3h1v10H3z" fill="var(--accent)"/><path d="M6 5h8M6 8h6M6 11h7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Blockquote',()=>document.execCommand('formatBlock',false,'blockquote'));
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 7h6M5 10h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>','Code block',()=>{
+    const pre=document.createElement('pre');pre.contentEditable='true';pre.textContent='';
+    const s=window.getSelection();if(s&&s.rangeCount)s.getRangeAt(0).insertNode(pre);
+    const nr=document.createRange();nr.setStart(pre,0);nr.collapse(true);
+    s.removeAllRanges();s.addRange(nr);
+  });
+  addBtn('—','Divider',()=>document.execCommand('insertHorizontalRule'));
+  addSep();
+
+  // ── Indent/outdent ──
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 8h8M6 12h8M2 8l3-2v4l-3-2z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>','Indent',()=>document.execCommand('indent'));
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h8M14 8l-3-2v4l3-2z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>','Outdent',()=>document.execCommand('outdent'));
+  addSep();
+
+  // ── Alignment (useful for headings) ──
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 7h8M2 10h12M2 13h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Align left',()=>document.execCommand('justifyLeft'));
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 7h8M2 10h12M4 13h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>','Align center',()=>document.execCommand('justifyCenter'));
+  addSep();
+
+  // ── Clear / remove format ──
+  addBtn('<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M9 3l4 4-6 6H3l4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>','Clear formatting',()=>document.execCommand('removeFormat'));
   editor.addEventListener('input',()=>{
     page.content = editor.innerHTML;
     page.updatedAt=Date.now();
@@ -3756,28 +3916,88 @@ function buildDocView(page){
 let _slashMenu=null, _slashRange=null;
 
 function docEditorKey(e, editor, page){
-  // Enter inside slash menu
-  if(_slashMenu&&e.key==='Enter'){e.preventDefault();const focused=_slashMenu.querySelector('.focused');if(focused)focused.click();else closeSlashMenu();return;}
-  if(_slashMenu&&e.key==='ArrowDown'){e.preventDefault();navigateSlash(1);return;}
-  if(_slashMenu&&e.key==='ArrowUp'){e.preventDefault();navigateSlash(-1);return;}
-  if(_slashMenu&&e.key==='Escape'){closeSlashMenu();return;}
-  // Markdown shortcuts on Space
+  // Slash menu navigation
+  if(_slashMenu){
+    if(e.key==='Enter'){e.preventDefault();const f=_slashMenu.querySelector('.focused');if(f)f.click();else closeSlashMenu();return;}
+    if(e.key==='ArrowDown'){e.preventDefault();navigateSlash(1);return;}
+    if(e.key==='ArrowUp'){e.preventDefault();navigateSlash(-1);return;}
+    if(e.key==='Escape'){closeSlashMenu();return;}
+  }
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount)return;
+  const r=sel.getRangeAt(0);
+
+  // ── Enter key: continue or exit block types ──────────────
+  if(e.key==='Enter'&&!e.shiftKey){
+    // Continue todo list: if cursor in a .todo span, add new todo row
+    const todoDiv=getAncestor(r.startContainer,'.todo');
+    if(todoDiv){
+      e.preventDefault();
+      const span=todoDiv.querySelector('span');
+      const text=span?span.textContent:'';
+      if(!text.trim()){
+        // Empty todo → exit: replace with plain paragraph
+        const p=document.createElement('div');p.textContent='​';
+        todoDiv.parentNode.insertBefore(p,todoDiv.nextSibling);
+        todoDiv.remove();
+        const nr=document.createRange();nr.setStart(p,0);nr.collapse(true);
+        sel.removeAllRanges();sel.addRange(nr);
+      } else {
+        // Non-empty todo → create new todo row
+        insertTodoAfter(todoDiv);
+      }
+      page.content=editor.innerHTML;notesSave();
+      return;
+    }
+    // Continue blockquote: browser handles, just save
+    const bq=getAncestor(r.startContainer,'blockquote');
+    if(bq){
+      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      return;
+    }
+  }
+
+  // ── Space/Enter markdown shortcuts ───────────────────────
   if(e.key===' '||e.key==='Enter'){
-    const sel=window.getSelection();if(!sel.rangeCount)return;
-    const r=sel.getRangeAt(0);const node=r.startContainer;
+    const node=r.startContainer;
     if(node.nodeType!==Node.TEXT_NODE)return;
     const text=node.textContent.slice(0,r.startOffset);
     let matched=false;
-    if(text==='#'&&e.key===' '){e.preventDefault();applyBlock(node,'h1','');matched=true;}
-    else if(text==='##'&&e.key===' '){e.preventDefault();applyBlock(node,'h2','');matched=true;}
-    else if(text==='###'&&e.key===' '){e.preventDefault();applyBlock(node,'h3','');matched=true;}
-    else if((text==='-'||text==='*')&&e.key===' '){e.preventDefault();document.execCommand('insertUnorderedList');applyBlock(node,'none','');matched=true;}
-    else if(text==='1.'&&e.key===' '){e.preventDefault();document.execCommand('insertOrderedList');matched=true;}
-    else if(text==='>'&&e.key===' '){e.preventDefault();applyBlock(node,'blockquote','');matched=true;}
+    if(text==='#'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(1);document.execCommand('formatBlock',false,'h1');matched=true;}
+    else if(text==='##'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(2);document.execCommand('formatBlock',false,'h2');matched=true;}
+    else if(text==='###'&&e.key===' '){e.preventDefault();node.textContent=node.textContent.slice(3);document.execCommand('formatBlock',false,'h3');matched=true;}
+    else if((text==='-'||text==='*')&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertUnorderedList');matched=true;}
+    else if(text==='1.'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('insertOrderedList');matched=true;}
+    else if(text==='>'&&e.key===' '){e.preventDefault();node.textContent='';document.execCommand('formatBlock',false,'blockquote');matched=true;}
     else if(text==='---'&&e.key==='Enter'){e.preventDefault();document.execCommand('insertHorizontalRule');matched=true;}
-    else if(text==='[]'&&e.key===' '){e.preventDefault();insertTodo(node);matched=true;}
+    else if(text==='[]'&&e.key===' '){e.preventDefault();node.textContent='';insertTodo(node);matched=true;}
     if(matched){page.content=editor.innerHTML;notesSave();}
   }
+
+  // Save on any edit key
+  if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){
+    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+  }
+}
+
+function getAncestor(node,selector){
+  let el=node.nodeType===Node.TEXT_NODE?node.parentElement:node;
+  while(el){
+    if(el.matches&&el.matches(selector))return el;
+    el=el.parentElement;
+  }
+  return null;
+}
+
+function insertTodoAfter(todoDiv){
+  const newDiv=document.createElement('div');newDiv.className='todo';
+  const cb=document.createElement('input');cb.type='checkbox';
+  cb.addEventListener('change',()=>newDiv.classList.toggle('done',cb.checked));
+  const span=document.createElement('span');span.contentEditable='true';span.textContent='';
+  newDiv.appendChild(cb);newDiv.appendChild(span);
+  todoDiv.parentNode.insertBefore(newDiv,todoDiv.nextSibling);
+  const nr=document.createRange();nr.setStart(span,0);nr.collapse(true);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(nr);
 }
 
 function applyBlock(node, tag, prefix){
@@ -4744,13 +4964,25 @@ function showTab(t){
   const nav   = document.getElementById('nav-' + t);
   if(panel) panel.classList.add('active');
   if(nav)   nav.classList.add('active');
+  // Sync mobile bottom nav
+  document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+  const mbn=document.getElementById('mbn-'+t);
+  if(mbn)mbn.classList.add('active');
   // Always scroll main to top when switching tabs
   const mainEl = document.querySelector('.main');
   if(mainEl) mainEl.scrollTop = 0;
 
   // Per-tab side effects
   if(t === 'networks') loadNetworks();
-  if(t === 'notes')   { renderPageTree(); renderNotesMain(); }
+  if(t === 'notes'){
+    if(window.innerWidth <= 768){
+      // Mobile: always start at page list
+      document.querySelector('.notes-shell')?.classList.remove('mob-page-open');
+      _curPageId = null;
+    }
+    renderPageTree();
+    renderNotesMain();
+  }
   if(t === 'home')    {
     renderHomeRecent();
     if(typeof window._allChains !== 'undefined' && !window._allChains.length) loadNetworks();
