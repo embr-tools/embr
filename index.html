@@ -1272,8 +1272,8 @@ select{cursor:pointer;font-family:var(--ui);}
 
   /* ── Topbar ── */
   .topbar { padding: 0 12px; gap: 10px; height: 48px; }
-  .brand-badge, .addr-tag { display: none; }
-  .net-chip span:last-child { display: none; } /* hide network label, keep dot */
+  .brand-badge, .addr-tag { display: none !important; }
+  .net-chip span:last-child { display: none !important; } /* hide network label, keep dot */
 
   /* ── Main scrolls, panels fill ── */
   .main { overflow-y: auto; grid-column: 1 / -1 !important; grid-row: 2 !important; }
