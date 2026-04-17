@@ -44,7 +44,7 @@
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Embr","description":"Free open-source Web3 IDE for deploying smart contracts, encoding ABI calldata, and exploring EVM networks.","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","url":"https://embr.ledg.workers.dev","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Smart Contract Deployment","ABI Encoder and Decoder","Constructor Argument Encoder","EVM Network Explorer","Live RPC Latency Checker","ETH/ERC-20/SOL Transfer","WalletConnect Support","MetaMask Integration","Phantom Solana Wallet"]}</script>
 <!-- Favicons -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><path d='M9 11h14v2H9zM9 15h10v2H9zM9 19h7v2H9z' fill='%2310b981'/></svg>"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111'/%3E%3Cpath d='M9 11h14v2H9zM9 15h10v2H9zM9 19h7v2H9z' fill='%2310b981'/%3E%3C/svg%3E"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -152,6 +152,19 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 /* ── MAIN ── */
 .main{overflow-y:auto;background:var(--page);min-height:0;grid-column:2;grid-row:2;}
 .panel{display:none;animation:panIn .2s var(--ease);}
+
+/* ── INLINE PAGE MENTIONS ── */
+.mention-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(16, 185, 129, 0.1); color: var(--accent);
+  padding: 1px 6px; border-radius: 4px; font-weight: 500; font-size: 13.5px;
+  cursor: pointer; user-select: none; border: 1px solid rgba(16, 185, 129, 0.2);
+  transition: all 0.15s; vertical-align: baseline; margin: 0 2px;
+}
+.mention-link:hover { 
+  background: rgba(16, 185, 129, 0.2); 
+  border-color: var(--accent); 
+}
 
 /* ── STICKY NOTION TOOLBAR ── */
 .notion-toolbar {
@@ -944,7 +957,7 @@ select{cursor:pointer;font-family:var(--ui);}
 .kcard.dragging{opacity:.5;cursor:grabbing;}
 .kcard.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px rgba(16,185,129,.2);}
 .kcard-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;word-break:break-word;}
-.kcard-desc{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:7px;}
+.kcard-desc{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:7px;word-break:break-word;overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .kcard-footer{display:flex;align-items:center;justify-content:space-between;}
 .kcard-date{font-size:10px;color:var(--text3);font-family:var(--mono);}
 .kcard-menu{width:20px;height:20px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);opacity:0;transition:all .12s;border:none;background:transparent;}
@@ -1471,7 +1484,41 @@ select{cursor:pointer;font-family:var(--ui);}
   .home-actions { grid-template-columns: repeat(2,1fr) !important; }
   .home-wrap { padding: 40px 20px 80px !important; }
 }
-</style></style>
+
+/* ── Block handle + button (Notion-style) ── */
+#block-handle-btn{
+  position:fixed;
+  width:20px;height:20px;
+  border-radius:4px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  cursor:pointer;
+  color:var(--text3);
+  display:none;
+  align-items:center;justify-content:center;
+  font-size:15px;
+  z-index:500;
+  transition:all .1s;
+  user-select:none;
+  padding:0;line-height:1;
+}
+#block-handle-btn:hover{background:var(--surface3);color:var(--accent);border-color:var(--accent);}
+.bh-menu{
+  position:fixed;z-index:9999;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  width:210px;padding:4px 0;
+  animation:panIn .1s var(--ease);
+}
+.bh-menu-group{padding:6px 12px 2px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+.bh-menu-item{display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:pointer;font-size:13px;color:var(--text2);transition:background .1s;}
+.bh-menu-item:hover{background:var(--hover);color:var(--text);}
+.bh-menu-icon{width:26px;height:26px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono);}
+@media(max-width:768px){#block-handle-btn{display:none!important;}}
+
+</style>
 </head>
 <body>
 
@@ -1479,12 +1526,12 @@ select{cursor:pointer;font-family:var(--ui);}
 
 <!-- TOPBAR -->
 <header class="topbar">
-  <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle sidebar">
+  <!-- <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle sidebar">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" id="sb-icon">
       <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
-  </button>
-  <div class="brand">
+  </button> -->
+  <div class="brand" style="cursor: pointer;" onclick="toggleSidebar()">
     <div class="brand-mark" style="width:26px;height:26px;background:linear-gradient(135deg,#041f4d,#05115b);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(16,185,129,.3)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" width="80" height="100">
         <path d="M 40 95 C 19 86 6 64 14 39 C 21 20 32 12 40 11 C 48 12 59 20 66 39 C 74 64 61 86 40 95 Z" fill="#10b981"/>
@@ -2730,6 +2777,7 @@ contract MyContract { }"></textarea>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
 <script>
+
 
 /* ── HOME ACTIONS (defined first — used by cpSuggest) ── */
 const HOME_ACTIONS = window.HOME_ACTIONS = [
@@ -3981,14 +4029,16 @@ function notesPageCtxMenu(e, pageId){
   const menu = document.createElement('div');
   menu.style.cssText = `position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:9999;overflow:hidden;min-width:160px;`;
   const items = [
-    {label:'Add sub-page', fn:()=>notesNewPage(pageId)},
-    {label:'Rename', fn:()=>notesRenamePage(pageId)},
-    {label:'Delete page', fn:()=>notesDeletePage(pageId), danger:true},
+    {label:'Add sub-page', icon:'📄', fn:()=>notesNewPage(pageId)},
+    {label:'Link a page', icon:'🔗', fn:()=>notesLinkPage(pageId)},
+    {label:'Duplicate', icon:'📋', fn:()=>notesDuplicatePage(pageId)},
+    {label:'Rename', icon:'✏️', fn:()=>notesRenamePage(pageId)},
+    {label:'Delete page', icon:'🗑', fn:()=>notesDeletePage(pageId), danger:true},
   ];
   items.forEach(item=>{
     const el=document.createElement('div');
-    el.style.cssText=`padding:8px 14px;cursor:pointer;font-size:13px;color:${item.danger?'var(--red)':'var(--text2)'};`;
-    el.textContent=item.label;
+    el.style.cssText=`padding:9px 14px;cursor:pointer;font-size:13px;color:${item.danger?'var(--red)':'var(--text2)'};display:flex;align-items:center;gap:9px;`;
+    el.innerHTML=`<span style='font-size:14px;width:18px;text-align:center'>${item.icon||''}</span>${item.label}`;
     el.onmouseenter=()=>el.style.background='var(--hover)';
     el.onmouseleave=()=>el.style.background='';
     el.onclick=()=>{document.body.removeChild(menu);item.fn();};
@@ -4337,13 +4387,18 @@ function buildDocView(page){
     page.updatedAt = Date.now();
     notesSave();
   });
+
+  editor.addEventListener('keyup', e => {
+    checkSlashMenu(e, editor);
+    checkMentionMenu(e, editor); // <-- Add this line
+  });
   
   editor.addEventListener('keydown', e => docEditorKey(e, editor, page));
-  editor.addEventListener('keyup', e => checkSlashMenu(e, editor));
   
   inner.appendChild(tb);
   inner.appendChild(editor);
   wrap.appendChild(inner);
+  setTimeout(()=>setupBlockHandles(editor),50);
   
   return wrap;
 }
@@ -4357,6 +4412,14 @@ function docEditorKey(e, editor, page){
     if(e.key==='ArrowDown'){e.preventDefault();navigateSlash(1);return;}
     if(e.key==='ArrowUp'){e.preventDefault();navigateSlash(-1);return;}
     if(e.key==='Escape'){closeSlashMenu();return;}
+  }
+
+  // ── Inline Mention Navigation ──
+  if(_mentionMenu){
+    if(e.key==='Enter'){e.preventDefault();const f=_mentionMenu.querySelector('.focused');if(f)f.click();else closeMentionMenu();return;}
+    if(e.key==='ArrowDown'){e.preventDefault();navigateMention(1);return;}
+    if(e.key==='ArrowUp'){e.preventDefault();navigateMention(-1);return;}
+    if(e.key==='Escape'){closeMentionMenu();return;}
   }
   
   const sel=window.getSelection();
@@ -5590,6 +5653,170 @@ window.showTab=function(t){
 
 setTimeout(applySidebarState,0);
 
+
+function notesLinkPage(pageId){
+  const page=_notes.pages.find(p=>p.id===pageId);
+  if(!page) return;
+  const others=_notes.pages.filter(p=>p.id!==pageId&&p.parentId!==pageId);
+  if(!others.length){toast('No other pages to link','warn');return;}
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);';
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r3);box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:9999;width:320px;max-width:90vw;overflow:hidden;display:flex;flex-direction:column;max-height:400px;';
+  modal.innerHTML=`<div style="padding:14px 16px 10px;font-size:14px;font-weight:600;color:var(--text);border-bottom:1px solid var(--divider);flex-shrink:0">Link a page under "${page.title||'Untitled'}"</div>`;
+  const inp=document.createElement('input');
+  inp.style.cssText='margin:10px 12px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-size:13px;outline:none;';
+  inp.placeholder='Search pages...';
+  modal.appendChild(inp);
+  const list=document.createElement('div');
+  list.style.cssText='flex:1;overflow-y:auto;padding:4px 8px 8px;';
+  function render(q){
+    list.innerHTML='';
+    others.filter(p=>(p.title||'').toLowerCase().includes(q.toLowerCase())).forEach(p=>{
+      const r=document.createElement('div');
+      r.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r2);cursor:pointer;font-size:13px;color:var(--text2);transition:background .1s;';
+      r.innerHTML=(p.icon||'📄')+' '+(p.title||'Untitled');
+      r.onmouseenter=()=>r.style.background='var(--hover)';r.onmouseleave=()=>r.style.background='';
+      r.onclick=()=>{p.parentId=pageId;notesSave();renderPageTree();renderNotesMain();close();toast('Linked','ok');};
+      list.appendChild(r);
+    });
+    if(!list.children.length)list.innerHTML='<div style="padding:12px;color:var(--text3);font-size:13px;text-align:center">No pages found</div>';
+  }
+  function close(){document.body.removeChild(modal);document.body.removeChild(ov);}
+  render('');inp.oninput=()=>render(inp.value);
+  modal.appendChild(list);ov.onclick=close;
+  document.body.appendChild(ov);document.body.appendChild(modal);
+  setTimeout(()=>inp.focus(),50);
+}
+
+function notesDuplicatePage(pageId){
+  const p=_notes.pages.find(p=>p.id===pageId);if(!p)return;
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const dup={...p,id:uid(),title:(p.title||'Untitled')+' (copy)',tasks:(p.tasks||[]).map(t=>({...t,id:uid()})),content:p.content||'',createdAt:Date.now(),updatedAt:Date.now()};
+  _notes.pages.push(dup);notesSave();renderPageTree();toast('Duplicated','ok');
+}
+
+function setupBlockHandles(editor){
+  let _btn=document.getElementById('block-handle-btn');
+  if(!_btn){
+    _btn=document.createElement('button');
+    _btn.id='block-handle-btn';
+    _btn.textContent='+';
+    _btn.title='Add a block below';
+    document.body.appendChild(_btn);
+  }
+  let _block=null,_timer=null;
+
+  function showBtn(block){
+    if(!block||block===editor)return;
+    _block=block;clearTimeout(_timer);
+    const r=block.getBoundingClientRect();
+    const bLeft=r.left-28;
+    _btn.style.left=Math.max(4,bLeft)+'px';
+    _btn.style.top=(r.top+(r.height-20)/2)+'px';
+    _btn.style.display='flex';
+  }
+  function hideBtn(){_timer=setTimeout(()=>{_btn.style.display='none';_block=null;},250);}
+
+  editor.addEventListener('mouseover',e=>{
+    let n=e.target;
+    while(n&&n!==editor&&n.parentElement!==editor)n=n.parentElement;
+    if(n&&n!==editor)showBtn(n);
+  });
+  editor.addEventListener('mouseout',e=>{
+    if(!e.relatedTarget||(!editor.contains(e.relatedTarget)&&e.relatedTarget!==_btn))hideBtn();
+  });
+  editor.addEventListener('keyup',()=>{
+    const s=window.getSelection();if(!s||!s.rangeCount)return;
+    let n=s.anchorNode;
+    while(n&&n!==editor&&n.parentElement!==editor)n=n.parentElement;
+    if(n&&n!==editor)showBtn(n);
+  });
+  editor.addEventListener('click',e=>{
+    let n=e.target;
+    while(n&&n!==editor&&n.parentElement!==editor)n=n.parentElement;
+    if(n&&n!==editor)showBtn(n);
+  });
+  editor.addEventListener('scroll',()=>{if(_block)showBtn(_block);});
+  _btn.addEventListener('mouseenter',()=>clearTimeout(_timer));
+  _btn.addEventListener('mouseleave',()=>hideBtn());
+  _btn.addEventListener('mousedown',e=>{
+    e.preventDefault();e.stopPropagation();
+    if(!_block)return;
+    clearTimeout(_timer);
+    const r=_btn.getBoundingClientRect();
+    showBlockMenu(r.right+6,r.top,_block,editor);
+  });
+}
+
+function showBlockMenu(x,y,block,editor){
+  document.querySelectorAll('.bh-menu,.bh-ov').forEach(m=>m.remove());
+  const menu=document.createElement('div');menu.className='bh-menu';
+  const groups=[
+    {label:'Text',items:[
+      {icon:'T',label:'Text',       fn:()=>insertBlockAfter(block,editor,'div','')},
+      {icon:'H1',label:'Heading 1', fn:()=>insertBlockAfter(block,editor,'h1','')},
+      {icon:'H2',label:'Heading 2', fn:()=>insertBlockAfter(block,editor,'h2','')},
+      {icon:'H3',label:'Heading 3', fn:()=>insertBlockAfter(block,editor,'h3','')},
+    ]},
+    {label:'Lists',items:[
+      {icon:'•', label:'Bullet list',fn:()=>{insertBlockAfter(block,editor,'div','');document.execCommand('insertUnorderedList');}},
+      {icon:'1.',label:'Numbered',   fn:()=>{insertBlockAfter(block,editor,'div','');document.execCommand('insertOrderedList');}},
+      {icon:'☑', label:'To-do',      fn:()=>{
+        const d=document.createElement('div');d.innerHTML='<br>';block.after(d);
+        const s=window.getSelection();const r=document.createRange();r.setStart(d,0);r.collapse(true);s.removeAllRanges();s.addRange(r);
+        insertTodo(d.firstChild||d);
+        const pg=_notes.pages.find(p=>p.id===_curPageId);if(pg){pg.content=editor.innerHTML;notesSave();}
+      }},
+    ]},
+    {label:'Media',items:[
+      {icon:'❝', label:'Quote',  fn:()=>insertBlockAfter(block,editor,'blockquote','')},
+      {icon:'<>',label:'Code',   fn:()=>insertBlockAfter(block,editor,'pre','')},
+      {icon:'—', label:'Divider',fn:()=>{
+        const hr=document.createElement('hr'),p=document.createElement('div');p.innerHTML='<br>';
+        block.after(hr);hr.after(p);focusNode(p,editor);
+        const pg=_notes.pages.find(p2=>p2.id===_curPageId);if(pg){pg.content=editor.innerHTML;notesSave();}
+      }},
+    ]},
+  ];
+  groups.forEach(g=>{
+    const gl=document.createElement('div');gl.className='bh-menu-group';gl.textContent=g.label;menu.appendChild(gl);
+    g.items.forEach(item=>{
+      const row=document.createElement('div');row.className='bh-menu-item';
+      row.innerHTML=`<span class="bh-menu-icon">${item.icon}</span><span>${item.label}</span>`;
+      row.onclick=()=>{menu.remove();ov.remove();item.fn();};
+      menu.appendChild(row);
+    });
+  });
+  menu.style.cssText+=`left:${x}px;top:${y}px;`;
+  const ov=document.createElement('div');ov.className='bh-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:9998;';
+  ov.onclick=()=>{menu.remove();ov.remove();};
+  document.body.appendChild(ov);document.body.appendChild(menu);
+  requestAnimationFrame(()=>{
+    const mr=menu.getBoundingClientRect();
+    if(mr.right>window.innerWidth-8)menu.style.left=(window.innerWidth-mr.width-8)+'px';
+    if(mr.bottom>window.innerHeight-8)menu.style.top=(window.innerHeight-mr.height-8)+'px';
+  });
+}
+
+function insertBlockAfter(block,editor,tag,text){
+  const el=document.createElement(tag);
+  el.innerHTML=text||'<br>';
+  block.after(el);focusNode(el,editor);
+  const pg=_notes.pages.find(p=>p.id===_curPageId);
+  if(pg){pg.content=editor.innerHTML;notesSave();}
+}
+
+function focusNode(el,editor){
+  setTimeout(()=>{
+    el.focus&&el.focus();
+    const s=window.getSelection();const r=document.createRange();
+    try{r.setStart(el,0);}catch(e){r.selectNodeContents(el);r.collapse(true);}
+    s.removeAllRanges();s.addRange(r);
+  },10);
+}
+
 /* BOOT */
 try{renderTx();}catch(e){console.warn('renderTx',e);}
 try{selTok('ETH');}catch(e){console.warn('selTok',e);}
@@ -5632,6 +5859,118 @@ renderHomeRecent();
     }catch(e){localStorage.removeItem('cipher_wallet');}
   }
 })();
+
+/* ── INLINE PAGE MENTIONS (@) ── */
+let _mentionMenu = null, _mentionRange = null;
+
+function checkMentionMenu(e, editor) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  const node = r.startContainer;
+  
+  if (node.nodeType !== Node.TEXT_NODE) { closeMentionMenu(); return; }
+  
+  const text = node.textContent.slice(0, r.startOffset);
+  
+  // Look for an '@' preceded by a space or start of line, followed by typing
+  const match = text.match(/(?:^|\s)@([^\s]*)$/);
+  if (!match) { closeMentionMenu(); return; }
+  
+  const query = match[1].toLowerCase();
+  
+  // Search existing pages (exclude the currently open page)
+  const results = _notes.pages.filter(p => 
+    p.id !== _curPageId && 
+    (p.title || 'Untitled').toLowerCase().includes(query)
+  ).slice(0, 5); // Limit to top 5 matches
+  
+  if (!results.length) { closeMentionMenu(); return; }
+  
+  // Save the exact range of the "@text" so we can replace it later
+  _mentionRange = r.cloneRange();
+  const atSymbolIndex = r.startOffset - match[0].length + (match[0].startsWith(' ') ? 1 : 0);
+  _mentionRange.setStart(node, atSymbolIndex);
+  
+  showMentionMenu(results, editor);
+}
+
+function showMentionMenu(pages, editor) {
+  closeMentionMenu();
+  const sel = window.getSelection(); 
+  if (!sel.rangeCount) return;
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  
+  const menu = document.createElement('div');
+  menu.className = 'slash-menu'; // We reuse the beautiful slash menu styles!
+  menu.style.cssText = `top:${rect.bottom + 6}px; left:${rect.left}px; z-index:9999;`;
+  menu.innerHTML = '<div class="slash-section">Link to page</div>';
+  
+  pages.forEach((page, i) => {
+    const d = document.createElement('div');
+    d.className = 'slash-item' + (i === 0 ? ' focused' : '');
+    d.innerHTML = `<div class="slash-icon">${page.icon || '📄'}</div>
+                   <div><div class="slash-label">${page.title || 'Untitled'}</div></div>`;
+    
+    // When clicked, apply the mention and close
+    d.onclick = () => { applyMention(page, editor); closeMentionMenu(); };
+    menu.appendChild(d);
+  });
+  
+  document.body.appendChild(menu);
+  _mentionMenu = menu;
+}
+
+function closeMentionMenu() {
+  if (_mentionMenu) { _mentionMenu.remove(); _mentionMenu = null; }
+}
+
+function navigateMention(dir) {
+  if (!_mentionMenu) return;
+  const items = [..._mentionMenu.querySelectorAll('.slash-item')];
+  const cur = items.findIndex(i => i.classList.contains('focused'));
+  items[cur]?.classList.remove('focused');
+  items[Math.max(0, Math.min(items.length - 1, cur + dir))]?.classList.add('focused');
+}
+
+function applyMention(page, editor) {
+  if (!_mentionRange) return;
+  
+  // 1. Delete the "@query" text
+  const r = _mentionRange.cloneRange();
+  r.setEnd(r.startContainer, r.startContainer.textContent.length);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(r);
+  sel.collapseToStart();
+  r.deleteContents();
+  
+  // 2. Create the clickable link pill
+  const pill = document.createElement('span');
+  pill.className = 'mention-link';
+  pill.contentEditable = 'false'; // IMPORTANT: Prevents cursor getting trapped inside
+  pill.innerHTML = `${page.icon || '📄'} ${page.title || 'Untitled'}`;
+  pill.onclick = () => notesOpenPage(page.id); // Triggers page load
+  
+  // 3. Insert the pill and a trailing space so the user can keep typing
+  sel.getRangeAt(0).insertNode(pill);
+  const space = document.createTextNode('\u00A0'); 
+  pill.parentNode.insertBefore(space, pill.nextSibling);
+  
+  // 4. Move cursor to the space
+  const nr = document.createRange();
+  nr.setStart(space, 1);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+  
+  // 5. Save
+  const curPage = _notes.pages.find(p => p.id === _curPageId);
+  if (curPage) {
+    curPage.content = editor.innerHTML;
+    notesSave();
+  }
+}
 
 </script>
 </body>
