@@ -130,6 +130,17 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .tb-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
 .tb-btn-primary:hover{background:var(--accent-hover);}
 
+.ns-page-opt {
+  display: none; background: transparent; border: none; color: var(--text3);
+  font-size: 18px; cursor: pointer; line-height: 1; padding: 0 4px; margin-left: auto;
+}
+.ns-page:hover .ns-page-opt { display: block; }
+@media (max-width: 768px) {
+  .ns-page-opt { display: block; padding: 4px 8px; }
+  .ns-page { padding-right: 4px !important; }
+}
+
+
 /* ── SIDEBAR ── */
 .sidebar{background:var(--surface);border-right:1px solid var(--divider);padding:12px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;overflow-x:hidden;min-width:0;transition:width .22s,padding .22s,border-color .22s;grid-column:1;grid-row:2;}
 .sb-section-label{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:8px 10px 4px;}
@@ -738,6 +749,7 @@ select{cursor:pointer;font-family:var(--ui);}
     display: flex !important;
   }
 }
+
 
 .mob-notes-back:hover, 
 .mob-notes-back:active {
@@ -4198,13 +4210,16 @@ function buildPageNode(page, depth){
   const row = document.createElement('div');
   row.className = 'ns-page' + (isActive?' active':'');
   row.style.paddingLeft = (8+depth*16)+'px';
-  row.onclick = (e)=>{ if(!e.target.closest('.ns-page-chevron')&&!e.target.closest('.nsp-del')){notesOpenPage(page.id);} };
+  row.onclick = (e)=>{ if(!e.target.closest('.ns-page-chevron')&&!e.target.closest('.ns-page-opt')){notesOpenPage(page.id);} };
   row.oncontextmenu = (e)=>{ e.preventDefault(); notesPageCtxMenu(e, page.id); };
 
   const chevSvg = hasChildren ? `<svg class="ns-page-chevron${isExpanded?' open':''}" viewBox="0 0 16 16" fill="none" onclick="notesToggleExpand(event,'${page.id}')"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>` : `<span style="width:14px;flex-shrink:0"></span>`;
 
   const typeBadge = page.type!=='doc' ? `<span class="ns-page-type">${page.type}</span>` : '';
-  row.innerHTML = `${chevSvg}<span class="ns-page-icon">${page.icon||'📄'}</span><span class="ns-page-name">${page.title||'Untitled'}</span>${typeBadge}`;
+  
+  // ADDED: The options button for mobile!
+  row.innerHTML = `${chevSvg}<span class="ns-page-icon">${page.icon||'📄'}</span><span class="ns-page-name">${page.title||'Untitled'}</span>${typeBadge}<button class="ns-page-opt" onclick="event.stopPropagation(); notesPageCtxMenu(event, '${page.id}')">⋮</button>`;
+  
   wrap.appendChild(row);
 
   if(hasChildren && isExpanded){
@@ -4225,9 +4240,8 @@ function notesToggleExpand(e, pageId){
 }
 
 function notesPageCtxMenu(e, pageId){
-  // Simple context: add subpage, delete
   const menu = document.createElement('div');
-  menu.style.cssText = `position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:9999;overflow:hidden;min-width:160px;`;
+  menu.style.cssText = `position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:9999;overflow:hidden;min-width:160px;`;
   const items = [
     {label:'Add sub-page', icon:'📄', fn:()=>notesNewPage(pageId)},
     {label:'Link a page', icon:'🔗', fn:()=>notesLinkPage(pageId)},
@@ -4244,7 +4258,20 @@ function notesPageCtxMenu(e, pageId){
     el.onclick=()=>{document.body.removeChild(menu);item.fn();};
     menu.appendChild(el);
   });
+  
   document.body.appendChild(menu);
+  
+  // Smart positioning to prevent menu from being cut off screen
+  requestAnimationFrame(() => {
+    const r = menu.getBoundingClientRect();
+    let left = e.clientX;
+    let top = e.clientY;
+    if (left + r.width > window.innerWidth) left = window.innerWidth - r.width - 8;
+    if (top + r.height > window.innerHeight) top = window.innerHeight - r.height - 8;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  });
+  
   setTimeout(()=>document.addEventListener('click',()=>{if(document.body.contains(menu))document.body.removeChild(menu);},{once:true}),50);
 }
 
@@ -4488,8 +4515,13 @@ document.addEventListener('selectionchange', () => {
     return;
   }
   
-  const editor = document.querySelector('.doc-editor');
-  if (!editor || !editor.contains(sel.anchorNode)) {
+  // Check if we are inside the main doc OR the card modal editor
+  const docEditor = document.querySelector('.doc-editor');
+  const cardEditor = document.getElementById('cm-editor');
+  const inDoc = docEditor && docEditor.contains(sel.anchorNode);
+  const inCard = cardEditor && cardEditor.contains(sel.anchorNode);
+  
+  if (!inDoc && !inCard) {
     ft.classList.remove('active');
     return;
   }
@@ -4497,7 +4529,6 @@ document.addEventListener('selectionchange', () => {
   const range = sel.getRangeAt(0);
   const rect = range.getBoundingClientRect();
   
-  // Position above the selected text, centered
   ft.style.top = (rect.top - 42) + 'px';
   ft.style.left = (rect.left + (rect.width / 2)) + 'px';
   ft.classList.add('active');
@@ -4634,13 +4665,11 @@ function docEditorKey(e, editor, page){
     if(todoDiv){
       e.preventDefault();
       const span=todoDiv.querySelector('span');
-      // Check if the span only contains a <br> or is empty
       const text=span?span.textContent.trim():'';
       
       if(!text){
-        // Empty todo → exit: replace with plain paragraph
         const p=document.createElement('div');
-        p.innerHTML='<br>'; // Fixes the missing cursor!
+        p.innerHTML='<br>';
         todoDiv.parentNode.insertBefore(p,todoDiv.nextSibling);
         todoDiv.remove();
         
@@ -4650,19 +4679,18 @@ function docEditorKey(e, editor, page){
         sel.removeAllRanges();
         sel.addRange(nr);
       } else {
-        // Non-empty todo → create new todo row below it
         insertTodoAfter(todoDiv);
       }
-      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },0);
       return;
     }
 
-    // 2. Escape Headings (H1, H2, H3)
-    const heading=getAncestor(r.startContainer,'h1, h2, h3');
+    // 2. Escape Headings (H1, H2, H3) AND Blockquotes
+    const heading=getAncestor(r.startContainer,'h1, h2, h3, blockquote');
     if(heading){
       e.preventDefault();
       const p=document.createElement('div');
-      p.innerHTML='<br>'; // Fixes the missing cursor!
+      p.innerHTML='<br>'; 
       heading.parentNode.insertBefore(p,heading.nextSibling);
       
       const nr=document.createRange();
@@ -4671,7 +4699,7 @@ function docEditorKey(e, editor, page){
       sel.removeAllRanges();
       sel.addRange(nr);
       
-      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },0);
       return;
     }
   }
@@ -4693,13 +4721,64 @@ function docEditorKey(e, editor, page){
     else if(text==='[]'&&e.key===' '){e.preventDefault();node.textContent='';insertTodo(node);matched=true;}
     
     if(matched){
-      setTimeout(()=>{page.content=editor.innerHTML;notesSave();},0);
+      setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },0);
     }
   }
 
-  // Save on any edit key
+  // ── Backspace key: Remove formatting at the start of a block ─────────
+  if (e.key === 'Backspace') {
+    // Only trigger if cursor is at the absolute start of the element (Offset 0)
+    if (r.collapsed && r.startOffset === 0) {
+      
+      // 1. Break out of Custom Checkboxes (.todo)
+      const todoDiv = getAncestor(r.startContainer, '.todo');
+      if (todoDiv) {
+        e.preventDefault();
+        
+        // Grab existing text and convert it to a normal paragraph
+        const p = document.createElement('div');
+        const spanText = todoDiv.querySelector('span') ? todoDiv.querySelector('span').textContent : '';
+        p.innerHTML = spanText ? spanText : '<br>'; 
+        
+        todoDiv.parentNode.insertBefore(p, todoDiv);
+        todoDiv.remove();
+        
+        // Move cursor safely into the new normal paragraph
+        const nr = document.createRange();
+        nr.setStart(p, 0);
+        nr.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nr);
+        
+        setTimeout(() => { if (page) { page.content = editor.innerHTML; notesSave(); } }, 0);
+        return;
+      }
+
+      // 2. Break out of Native Lists (UL / OL)
+      const li = getAncestor(r.startContainer, 'li');
+      if (li) {
+        e.preventDefault();
+        // 'outdent' is the native command to break out of a list
+        document.execCommand('outdent');
+        setTimeout(() => { if (page) { page.content = editor.innerHTML; notesSave(); } }, 0);
+        return;
+      }
+
+      // 3. Break out of Headings & Blockquotes
+      const block = getAncestor(r.startContainer, 'h1, h2, h3, blockquote');
+      if (block) {
+        e.preventDefault();
+        // Convert the heading/quote back into standard text
+        document.execCommand('formatBlock', false, 'div');
+        setTimeout(() => { if (page) { page.content = editor.innerHTML; notesSave(); } }, 0);
+        return;
+      }
+    }
+  }
+  
+  // Save on any edit key (only if we are in the main document, not the modal)
   if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){
-    setTimeout(()=>{page.content=editor.innerHTML;notesSave();},50);
+    setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },50);
   }
 }
 
@@ -5001,7 +5080,20 @@ function openCardModal(e, pageId, taskId){
   document.getElementById('cm-status-val').innerHTML=`<span class="status-badge ${st.cls}"><span class="status-dot ${st.dot}"></span>${st.label}</span>`;
   document.getElementById('cm-status-val').dataset.statusId=task.status;
   document.getElementById('cm-created').textContent=new Date(task.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('cm-editor').innerHTML=task.description||'';
+  
+  const cmEditor = document.getElementById('cm-editor');
+  cmEditor.innerHTML=task.description||'';
+  
+  // Attach Slash and Mention listeners to the card editor!
+  if(!cmEditor.dataset.hasListeners) {
+    cmEditor.addEventListener('keyup', e => {
+      checkSlashMenu(e, cmEditor);
+      checkMentionMenu(e, cmEditor);
+    });
+    cmEditor.addEventListener('keydown', e => docEditorKey(e, cmEditor, null));
+    cmEditor.dataset.hasListeners = "true";
+  }
+  
   document.getElementById('card-modal-mask').classList.add('open');
   setTimeout(()=>document.getElementById('cm-title').focus(),100);
 }
@@ -6282,10 +6374,12 @@ function applyMention(page, editor) {
   sel.addRange(nr);
   
   // 5. Save
-  const curPage = _notes.pages.find(p => p.id === _curPageId);
-  if (curPage) {
-    curPage.content = editor.innerHTML;
-    notesSave();
+  if (editor.id !== 'cm-editor') {
+    const curPage = _notes.pages.find(p => p.id === _curPageId);
+    if (curPage) {
+      curPage.content = editor.innerHTML;
+      notesSave();
+    }
   }
 }
 
