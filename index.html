@@ -1208,13 +1208,54 @@ select{cursor:pointer;font-family:var(--ui);}
 .settings-row-label{font-size:13px;color:var(--text2);}
 .settings-row-desc{font-size:11px;color:var(--text3);margin-top:2px;}
 .settings-right{flex-shrink:0;margin-left:16px;}
-/* Toggle */
-.toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:99px;cursor:pointer;transition:background .2s;}
-.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:var(--text3);border-radius:50%;transition:all .2s;}
-.toggle input:checked + .toggle-slider{background:var(--accent);}
-.toggle input:checked + .toggle-slider:before{transform:translateX(16px);background:#fff;}
+/* ── Premium Toggle ── */
+.toggle {
+  position: relative;
+  display: inline-block; /* CRITICAL: Prevents it from squishing */
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: var(--text3);
+  border-radius: 50%;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Gives the knob a physical feel */
+}
+.toggle:hover .toggle-slider:before {
+  background: var(--text2);
+}
+.toggle input:checked + .toggle-slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(16px);
+  background: #ffffff;
+}
+
 /* Accent swatches */
 .accent-swatches{display:flex;gap:7px;flex-wrap:wrap;}
 .accent-swatch{width:22px;height:22px;border-radius:5px;cursor:pointer;transition:transform .15s;border:2px solid transparent;}
