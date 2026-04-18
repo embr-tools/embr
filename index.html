@@ -310,6 +310,26 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
     white-space: normal !important;
     word-break: break-word !important;
   }
+
+  
+
+  /* ── NAME TAG PILLS (WITH STATUS) ── */
+.addr-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 6px; border-radius: 4px; font-family: var(--ui); font-size: 13px; font-weight: 500;
+  cursor: pointer; user-select: none; vertical-align: baseline; margin: 0 2px;
+  transition: all 0.15s; border: 1px solid transparent;
+}
+/* Neutral (Default) */
+.addr-pill.neutral { background: rgba(100, 116, 139, 0.1); color: var(--text2); border-color: rgba(100, 116, 139, 0.2); }
+.addr-pill.neutral:hover { background: rgba(100, 116, 139, 0.2); }
+/* Safe / Verified */
+.addr-pill.safe { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+.addr-pill.safe:hover { background: rgba(16, 185, 129, 0.2); }
+/* Spam / Malicious */
+.addr-pill.spam { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
+.addr-pill.spam:hover { background: rgba(239, 68, 68, 0.2); }
+
   /* ── Sidebar overlay ── */
   .sidebar {
     position: fixed !important;
@@ -1706,6 +1726,39 @@ select{cursor:pointer;font-family:var(--ui);}
     <span class="brand-name">Embr</span>
     <span class="brand-badge">for builders</span>
   </div>
+
+  <div id="tag-modal-mask" class="modal-mask" onmousedown="closeTagModal()">
+  <div class="modal" onmousedown="event.stopPropagation()" style="width: 320px; padding: 20px;">
+    <h3 style="margin: 0 0 16px 0; font-size: 16px; color: var(--text);">🏷️ Name Tag</h3>
+    
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div>
+        <label style="font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; margin-bottom:4px; display:block;">Tag Name</label>
+        <input type="text" id="tag-name" class="term-input" placeholder="e.g. Treasury Wallet" style="width: 100%;">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; margin-bottom:4px; display:block;">Value / Address</label>
+        <input type="text" id="tag-val" class="term-input" placeholder="e.g. 0x123..." style="width: 100%;">
+      </div>
+      
+      <div>
+        <label style="font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; margin-bottom:4px; display:block;">Classification</label>
+        <select id="tag-status" class="term-input" style="width: 100%; cursor: pointer;">
+          <option value="neutral">⚪ Neutral / Unverified</option>
+          <option value="safe">🟢 Safe / Known</option>
+          <option value="spam">🔴 Spam / Malicious</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-secondary" onclick="closeTagModal()" style="flex:1;">Cancel</button>
+        <button id="tag-delete-btn" class="btn" style="flex:1; background:#ef4444; color:white; border:none; display:none;" onclick="deleteNameTag()">Delete</button>
+        <button class="btn btn-primary" onclick="saveNameTag()" style="flex:1;">Save Tag</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- Network chip — opens modal -->
   <div class="net-chip" id="net-chip" onclick="openNetModal()">
     <span class="net-dot" id="net-chip-dot" style="background:#627eea"></span>
@@ -3971,6 +4024,26 @@ function homeSearch(){
   const is4byte=/^0x[0-9a-fA-F]{8}$/.test(raw);
 
   if(isAddress){
+     // ── Name Tags search ──
+    if (typeof _nameTags !== 'undefined' && _nameTags.length > 0) {
+      _nameTags.filter(t => (t.name || '').toLowerCase().includes(q) || (t.val || '').toLowerCase().includes(q))
+        .slice(0, 3).forEach(t => {
+          items.push({
+            icon: '🏷️',
+            label: t.name,
+            desc: t.val.length > 24 ? t.val.substring(0,10) + '...' + t.val.substring(t.val.length - 10) : t.val,
+            type: 'tag',
+            status: t?.status || 'neutral',
+            rawVal: t.val, // Save the raw value so the copy button can grab it
+            fn: () => {
+              if (t.pageId) {
+                showTab('notes');
+                setTimeout(() => notesOpenPage(t.pageId), 100);
+              }
+            }
+          });
+        });
+    }
     items.push({icon:'📋',label:'Open in Interact',desc:raw.slice(0,10)+'…'+raw.slice(-6),fn:()=>{document.getElementById('c-addr').value=raw;showTab('interact');}});
     items.push({icon:'📋',label:'Copy address',desc:'Copy to clipboard',fn:()=>{navigator.clipboard.writeText(raw);toast('Address copied','ok');}});
     const net=NETS[parseInt(document.getElementById('netsel').value)];
@@ -4030,6 +4103,28 @@ function homeSearch(){
           fn:()=>{showTab('networks');setTimeout(()=>{const el=document.getElementById('net-search');if(el){el.value=c.name;netFilter();}},200);}
         }));
     }
+
+    // ── 6. Name Tags search ──
+    if (typeof _nameTags !== 'undefined' && _nameTags.length > 0) {
+      _nameTags.filter(t => (t.name || '').toLowerCase().includes(q) || (t.val || '').toLowerCase().includes(q))
+        .slice(0, 3).forEach(t => {
+          items.push({
+            icon: '🏷️',
+            label: t.name,
+            desc: t.val.length > 24 ? t.val.substring(0,10) + '...' + t.val.substring(t.val.length - 10) : t.val,
+            type: 'tag',
+            rawVal: t.val, // Save the raw value so the copy button can grab it
+            fn: () => {
+              if (t.pageId) {
+                showTab('notes');
+                setTimeout(() => notesOpenPage(t.pageId), 100);
+              }
+            }
+          });
+        });
+    }
+
+
   }
 
   // Web search fallback for unrecognised queries
@@ -4050,15 +4145,19 @@ function homeSearch(){
     if(type==='bookmark')return`<span style="font-size:9px;color:rgba(16,185,129,.8);background:rgba(16,185,129,.08);padding:1px 5px;border-radius:3px;border:1px solid rgba(16,185,129,.2);flex-shrink:0">Saved</span>`;
     return'';
   };
-  box.innerHTML=items.map((item,i)=>`
+ box.innerHTML=items.map((item,i)=>`
     <div class="hs-item${i===_homeFocused?' focused':''}" id="hsi-${i}">
       <div class="hs-icon" style="background:var(--surface2)">${item.icon}</div>
       <div style="flex:1;min-width:0">
-        <div class="hs-name">${item.label}</div>
+        <div class="hs-name"><b style="font-size:13px; color:${item.status === 'spam' ? '#ef4444' : item.status === 'safe' ? '#10b981' : 'var(--text)'};">${item.label}</b></div>
         <div style="font-size:11px;color:var(--text3)">${item.desc}</div>
       </div>
       ${typeChip(item.type||'')}
+      
+      ${item.type === 'tag' ? `<button class="btn btn-secondary btn-xs" style="margin-left:8px; padding:4px 8px; font-size:10px;" onclick="event.stopPropagation(); navigator.clipboard.writeText('${item.rawVal}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 2000);">Copy</button>` : ''}
+      
     </div>`).join('');
+    
   box._items=items;
   // Attach click handlers after render
   box.querySelectorAll('.hs-item').forEach((el,i)=>{
@@ -4164,6 +4263,7 @@ const SLASH_CMDS = [
   {label:'Quote',        desc:'Block quote',         icon:'❝',  cmd:'quote'},
   {label:'Code',         desc:'Code block',          icon:'<>',  cmd:'code'},
   {label:'Divider',      desc:'Horizontal rule',     icon:'—',  cmd:'hr'},
+  {label:'Name Tag',      desc:'Add Name tags to recall',     icon:'—',  cmd:'tag'},
 ];
 
 let _notes = JSON.parse(localStorage.getItem('cipher_notes') || '{"pages":[]}');
@@ -4723,6 +4823,57 @@ function docEditorKey(e, editor, page){
     if(matched){
       setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },0);
     }
+    // ── Auto-Replace Name Tags ──
+    const lastWordMatch = text.match(/(\S+)$/); 
+    if (lastWordMatch && _nameTags && _nameTags.length > 0) {
+      const typedVal = lastWordMatch[1];
+      
+      // Check if the typed word matches any saved tag value (case-insensitive)
+      const matchedTag = _nameTags.find(t => t.val.toLowerCase() === typedVal.toLowerCase());
+      
+      if (matchedTag) {
+        e.preventDefault();
+        
+        // 1. Delete the raw text they just typed
+        const rClone = r.cloneRange();
+        rClone.setStart(node, r.startOffset - typedVal.length);
+        rClone.deleteContents();
+        
+       // 2. Insert the interactive pill
+        const pill = document.createElement('span');
+        const status = matchedTag.status || 'neutral';
+        pill.className = `addr-pill ${status}`;
+        pill.contentEditable = 'false';
+        pill.title = matchedTag.val;
+        pill.setAttribute('data-tag-id', matchedTag.id); // Add the ID for the global listener!
+        
+        const icon = status === 'safe' ? '🟢' : status === 'spam' ? '🔴' : '🏷️';
+        pill.innerHTML = `${icon} ${matchedTag.name}`;
+        
+        // WE NO LONGER ADD onmousedown HERE
+        
+        sel.getRangeAt(0).insertNode(pill);
+        
+        // 3. Make it clickable to open the editor modal!
+        pill.onmousedown = (ev) => { 
+          ev.preventDefault(); // Crucial: stops editor from losing cursor
+          openTagModal(matchedTag.id); 
+        }; 
+        
+        sel.getRangeAt(0).insertNode(pill);
+        
+        // 4. Add a space after the pill and reset cursor
+        const space = document.createTextNode('\u00A0');
+        pill.parentNode.insertBefore(space, pill.nextSibling);
+        const nr = document.createRange();
+        nr.setStart(space, 1);
+        nr.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(nr);
+        
+        matched = true;
+      }
+    }
   }
 
   // ── Backspace key: Remove formatting at the start of a block ─────────
@@ -4775,7 +4926,7 @@ function docEditorKey(e, editor, page){
       }
     }
   }
-  
+
   // Save on any edit key (only if we are in the main document, not the modal)
   if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){
     setTimeout(()=>{ if(page){ page.content=editor.innerHTML; notesSave(); } },50);
@@ -4908,6 +5059,10 @@ function applySlashCmd(cmd, editor){
     quote:()=>document.execCommand('formatBlock',false,'blockquote'),
     code:()=>{const pre=document.createElement('pre');pre.contentEditable='true';sel.getRangeAt(0).insertNode(pre);},
     hr:()=>document.execCommand('insertHorizontalRule'),
+    tag:()=>{
+        document.execCommand('delete'); // Deletes the '/' if it was typed
+        openTagModal(); 
+      },
     todo:()=>insertTodo(sel.getRangeAt(0).startContainer),
   };
   if(cmds[cmd])cmds[cmd]();
@@ -6179,6 +6334,11 @@ function showBlockMenu(x,y,block,editor){
       }},
     ]},
     {label:'Media',items:[
+      // ── THE FIXED NAME TAG ITEM ──
+      {icon:'🏷️', label:'Name Tag', fn:()=>{
+        document.execCommand('delete'); // Deletes the '/' if it was typed
+        openTagModal(); 
+      }},
       {icon:'❝', label:'Quote',  fn:()=>insertBlockAfter(block,editor,'blockquote','')},
       {icon:'<>',label:'Code',   fn:()=>insertBlockAfter(block,editor,'pre','')},
       {icon:'—', label:'Divider',fn:()=>{
@@ -6193,6 +6353,7 @@ function showBlockMenu(x,y,block,editor){
     g.items.forEach(item=>{
       const row=document.createElement('div');row.className='bh-menu-item';
       row.innerHTML=`<span class="bh-menu-icon">${item.icon}</span><span>${item.label}</span>`;
+      // It now properly triggers item.fn()
       row.onclick=()=>{menu.remove();ov.remove();item.fn();};
       menu.appendChild(row);
     });
@@ -6610,6 +6771,178 @@ async function checkForCloudUpdates() {
 // Run this 2 seconds after the app boots so it doesn't slow down the UI
 setTimeout(checkForCloudUpdates, 2000);
 setTimeout(loadSyncSettings, 500); // Loads the PAT on startup
+
+/* ── GLOBAL NAME TAG SYSTEM ── */
+let _nameTags = JSON.parse(localStorage.getItem('embr_tags')) || [];
+let _tagSavedSelection = null; 
+let _editingTagId = null;
+
+// THE FIX: Global Event Listener for Pills (Survives Refreshes!)
+document.addEventListener('mousedown', function(e) {
+  const pill = e.target.closest('.addr-pill');
+  if (pill) {
+    e.preventDefault(); // Stop editor from moving the cursor
+    e.stopPropagation(); // Stop editor from capturing click
+    const tagId = pill.getAttribute('data-tag-id');
+    if (tagId) openTagModal(tagId);
+  }
+});
+
+function openTagModal(existingTagId = null) {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !existingTagId) {
+    _tagSavedSelection = sel.getRangeAt(0).cloneRange();
+  }
+  
+  const dynamicMenu = document.querySelector('.block-menu');
+  if (dynamicMenu) dynamicMenu.remove();
+  
+  const nameInput = document.getElementById('tag-name');
+  const valInput = document.getElementById('tag-val');
+  const statusInput = document.getElementById('tag-status');
+  const deleteBtn = document.getElementById('tag-delete-btn');
+  
+  if (existingTagId) {
+    _editingTagId = existingTagId;
+    const tag = _nameTags.find(t => t.id === existingTagId);
+    nameInput.value = tag ? tag.name : '';
+    valInput.value = tag ? tag.val : '';
+    statusInput.value = tag && tag.status ? tag.status : 'neutral';
+    deleteBtn.style.display = 'block';
+  } else {
+    _editingTagId = null;
+    nameInput.value = '';
+    valInput.value = '';
+    statusInput.value = 'neutral';
+    deleteBtn.style.display = 'none';
+  }
+  
+  document.getElementById('tag-modal-mask').classList.add('open');
+  setTimeout(() => nameInput.focus(), 100);
+}
+
+function closeTagModal() {
+  document.getElementById('tag-modal-mask').classList.remove('open');
+  _tagSavedSelection = null;
+  _editingTagId = null;
+}
+
+function deleteNameTag() {
+  if (!_editingTagId) return;
+  if (!confirm("Delete this Name Tag?")) return;
+  
+  // Grab the raw value before we delete it so we can put it back in the text
+  const tagToDelete = _nameTags.find(t => t.id === _editingTagId);
+  const rawValue = tagToDelete ? tagToDelete.val : "";
+  
+  // 1. Remove from the global database
+  _nameTags = _nameTags.filter(t => t.id !== _editingTagId);
+  localStorage.setItem('embr_tags', JSON.stringify(_nameTags));
+  
+  // 2. Remove the visual pills from the current editor!
+  // This searches the document for the pill and replaces it with standard text
+  document.querySelectorAll(`.addr-pill[data-tag-id="${_editingTagId}"]`).forEach(el => {
+    const textNode = document.createTextNode(rawValue);
+    el.parentNode.replaceChild(textNode, el);
+  });
+
+  // 3. Force an immediate auto-save so the note remembers the pill is gone
+  setTimeout(() => {
+    const page = _notes.pages.find(p => p.id === _curPageId);
+    const docEditor = document.querySelector('.doc-editor');
+    if(page && docEditor) { 
+      page.content = docEditor.innerHTML; 
+      notesSave(); 
+    }
+  }, 50);
+
+  closeTagModal();
+}
+
+function saveNameTag() {
+  const name = document.getElementById('tag-name').value.trim();
+  const val = document.getElementById('tag-val').value.trim();
+  const status = document.getElementById('tag-status').value;
+  if (!name || !val) return;
+
+  // ── 1. DUPLICATE PREVENTION LOGIC ──
+  const isDuplicate = _nameTags.some(t => {
+    // If we are editing, ignore the tag we are currently editing
+    if (_editingTagId && t.id === _editingTagId) return false;
+    
+    // Check if the name OR the address already exists (case-insensitive)
+    return t.name.toLowerCase() === name.toLowerCase() || 
+           t.val.toLowerCase() === val.toLowerCase();
+  });
+
+  if (isDuplicate) {
+    if (typeof toast === 'function') toast('A tag with this name or address already exists!', 'warn');
+    else alert('A tag with this name or address already exists!');
+    return; // Abort the save process
+  }
+  // ───────────────────────────────────
+
+  let savedTagId;
+  let newTagObj;
+
+  // 2. Update or Create
+  if (_editingTagId) {
+    const tagIndex = _nameTags.findIndex(t => t.id === _editingTagId);
+    if (tagIndex > -1) {
+      _nameTags[tagIndex].name = name;
+      _nameTags[tagIndex].val = val;
+      _nameTags[tagIndex].status = status;
+      savedTagId = _editingTagId;
+      newTagObj = _nameTags[tagIndex];
+    }
+  } else {
+    newTagObj = { id: Date.now().toString(), name: name, val: val, status: status, pageId: _curPageId };
+    _nameTags.push(newTagObj);
+    savedTagId = newTagObj.id;
+  }
+  
+  localStorage.setItem('embr_tags', JSON.stringify(_nameTags));
+
+  // 3. Update DOM for Edited Tags
+  if (_editingTagId) {
+    document.querySelectorAll(`.addr-pill[data-tag-id="${_editingTagId}"]`).forEach(el => {
+      el.className = `addr-pill ${status}`;
+      el.innerHTML = `${status === 'safe' ? '🟢' : status === 'spam' ? '🔴' : '🏷️'} ${name}`;
+      el.title = val;
+    });
+  } 
+  // 4. Insert Pill for New Tags
+  else if (_tagSavedSelection) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(_tagSavedSelection);
+    
+    const pill = document.createElement('span');
+    pill.className = `addr-pill ${status}`;
+    pill.contentEditable = 'false';
+    pill.title = val;
+    pill.setAttribute('data-tag-id', savedTagId);
+    pill.innerHTML = `${status === 'safe' ? '🟢' : status === 'spam' ? '🔴' : '🏷️'} ${name}`;
+    
+    _tagSavedSelection.insertNode(pill);
+    const space = document.createTextNode('\u00A0');
+    pill.parentNode.insertBefore(space, pill.nextSibling);
+    
+    _tagSavedSelection.setStart(space, 1);
+    _tagSavedSelection.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(_tagSavedSelection);
+  }
+
+  // 5. Force Auto-Save
+  setTimeout(() => {
+    const page = _notes.pages.find(p => p.id === _curPageId);
+    const docEditor = document.querySelector('.doc-editor');
+    if(page && docEditor) { page.content = docEditor.innerHTML; notesSave(); }
+  }, 50);
+
+  closeTagModal();
+}
 
 </script>
 </body>
