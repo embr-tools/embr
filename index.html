@@ -149,6 +149,41 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .ext-link{display:flex;align-items:center;justify-content:center;margin-top:8px;padding:6px;border-radius:var(--r2);font-size:12px;font-weight:500;color:var(--text2);text-decoration:none;border:1px solid var(--border);background:transparent;transition:all .15s;gap:6px;}
 .ext-link:hover{background:var(--surface3);color:var(--text);}
 
+/* ── MOBILE SYNC UX ── */
+.mob-toast {
+  position: fixed;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 9999;
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  pointer-events: none; /* So it doesn't block taps */
+}
+.mob-toast.show {
+  top: 24px; /* Slides into view */
+}
+
+.nav-badge {
+  position: absolute;
+  top: 6px;
+  right: 50%;
+  margin-right: -14px; /* Pushes it to the top right of the icon */
+  width: 8px;
+  height: 8px;
+  background: #f59e0b; /* Orange alert color */
+  border-radius: 50%;
+  display: none; /* Hidden by default */
+  box-shadow: 0 0 0 2px var(--page); /* Nice cutout effect */
+}
+
 /* ── MAIN ── */
 .main{overflow-y:auto;background:var(--page);min-height:0;grid-column:2;grid-row:2;}
 .panel{display:none;animation:panIn .2s var(--ease);}
@@ -1067,7 +1102,7 @@ select{cursor:pointer;font-family:var(--ui);}
 .tw-search-wrap{display:flex;gap:6px;align-items:center;}
 .tw-search{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:4px 10px;font-size:12px;color:var(--text);font-family:var(--ui);outline:none;width:140px;transition:border-color .15s;}
 .tw-search:focus{border-color:var(--accent);}
-.tw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.tw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
 .token-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px;transition:all .15s;cursor:default;position:relative;}
 .token-card:hover{background:var(--surface2);border-color:var(--border2);}
 .token-card-top{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
@@ -1088,6 +1123,64 @@ select{cursor:pointer;font-family:var(--ui);}
 .tw-drop-item:hover{background:var(--hover);color:var(--text);}
 .tw-drop-sym{font-weight:600;font-size:12px;}
 .tw-drop-name{font-size:11px;color:var(--text3);}
+
+/* ── SEARCH BAR REFINEMENTS ── */
+.tw-search-wrap {
+  position: relative;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+#tw-search {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px 10px 36px; /* Extra left padding for a search icon if you have one */
+  border-radius: var(--r2);
+  font-family: var(--ui);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+#tw-search:focus {
+  border-color: var(--accent);
+  background: var(--surface2);
+}
+
+#tw-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 100;
+  display: none;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+#tw-dropdown.show {
+  display: block;
+}
+
+.tw-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--divider);
+  transition: background 0.15s;
+}
+.tw-item:last-child { border-bottom: none; }
+.tw-item:hover { background: var(--surface2); }
+.tw-item-sym { font-weight: bold; font-size: 13px; color: var(--text); }
+.tw-item-name { font-size: 12px; color: var(--text3); }
 
 /* ── GAS TRACKER (in a banner on home) ─────────────── */
 .gas-banner{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:20px;}
@@ -1322,7 +1415,7 @@ select{cursor:pointer;font-family:var(--ui);}
   .accent-swatches { gap: 8px !important; }
   .accent-swatch { width: 26px !important; height: 26px !important; }
   .gas-tiers { grid-template-columns: repeat(3,1fr); }
-  .tw-grid { grid-template-columns: repeat(2,1fr) !important; }
+  /* tw-grid mobile override moved to @media block */
 
   /* ── Notes — Notion mobile (Notion-style) ── */
   .notes-shell {
@@ -1518,11 +1611,27 @@ select{cursor:pointer;font-family:var(--ui);}
 .bh-menu-icon{width:26px;height:26px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono);}
 @media(max-width:768px){#block-handle-btn{display:none!important;}}
 
+
+/* ── Token card inner layout (tc-* classes used by renderTokenGrid) ── */
+.tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tc-id{display:flex;align-items:center;gap:6px;min-width:0;}
+.tc-id img{width:22px;height:22px;border-radius:50%;flex-shrink:0;}
+.tc-sym{font-size:13px;font-weight:600;color:var(--text);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tc-del{width:18px;height:18px;border-radius:3px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s,color .12s;}
+.token-card:hover .tc-del{opacity:1;}
+.tc-del:hover{color:var(--red);}
+.tc-price{font-size:16px;font-weight:700;font-family:var(--mono);color:var(--text);margin-bottom:4px;word-break:break-all;}
+.tc-change{font-size:11px;font-family:var(--mono);display:flex;align-items:center;gap:3px;}
+.tc-change.up{color:var(--accent);}
+.tc-change.down{color:var(--red);}
+
 </style>
 </head>
 <body>
 
+
 <div class="shell">
+  <div id="mob-toast" class="mob-toast">✅ Synced to Cloud</div>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -2540,6 +2649,45 @@ contract MyContract { }"></textarea>
     </div>
   </div>
 
+ <div class="settings-section">
+  <div class="settings-section-title">Cloud Sync (GitHub Gist)</div>
+  <div style="font-size:13px; color:var(--text3); margin-bottom:16px; line-height:1.5;">
+    Sync your workspace (notes, networks, and settings) securely across devices using a Private Gist.
+    <a href="https://github.com/settings/tokens/new?scopes=gist&description=Embr+Workspace+Sync" target="_blank" style="color:var(--accent); text-decoration:none;">Get a Token →</a>
+  </div>
+  
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div>
+      <label style="font-size:12px; color:var(--text2); margin-bottom:6px; display:block;">GitHub Personal Access Token (PAT)</label>
+      <input type="password" id="sync-gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onchange="saveSyncSettings()" style="width:100%; background:var(--page); border:1px solid var(--divider); color:var(--text); padding:10px 12px; border-radius:6px; font-family:var(--mono); font-size:14px; outline:none;">
+    </div>
+
+    <div>
+      <label style="font-size:12px; color:var(--text2); margin-bottom:6px; display:block;">Sync ID (Gist ID)</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="sync-gist-id" placeholder="Leave blank to create a new one" onchange="saveSyncSettings()" style="flex:1; background:var(--page); border:1px solid var(--divider); color:var(--text); padding:10px 12px; border-radius:6px; font-family:var(--mono); font-size:14px; outline:none;">
+        <button class="btn btn-secondary" onclick="findExistingGist()" title="Auto-find existing Embr sync ID" style="padding:0 16px;">🔍 Find</button>
+      </div>
+      <div style="font-size:11.5px; color:var(--text3); margin-top:8px; line-height:1.4;">
+        <b style="color:var(--text2);">First time?</b> Just paste your PAT and click Push. We will automatically create your secure cloud file and generate an ID. Use this ID to import your data on other devices.
+      </div>
+    </div>
+  </div>
+
+<div style="display:flex; gap:10px; margin-top:16px;">
+    <button class="btn btn-primary" onclick="pushWorkspaceToGist()" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 0;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Push to Cloud
+    </button>
+    <button class="btn btn-secondary" onclick="pullWorkspaceFromGist()" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 0;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Pull from Cloud
+    </button>
+  </div>
+
+  <div id="sync-status" style="font-size:13px; margin-top:12px; font-family:var(--mono); color:var(--text2); display:none; padding:10px; border-radius:6px; background:var(--page); border:1px solid var(--divider);"></div>
+</div>
+
   <!-- Search -->
   <div class="settings-section">
     <div class="settings-section-title">Search</div>
@@ -2754,6 +2902,12 @@ contract MyContract { }"></textarea>
     <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v2H3zM3 7h7v2H3zM3 11h5v2H3z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
     Notes
   </button>
+  <div class="mob-nav-btn" id="mbn-settings" onclick="showTab('settings')" style="position: relative;">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+  <span>Settings</span>
+  
+  <div id="mob-sync-badge" class="nav-badge"></div>
+</div>
   <button class="mob-nav-btn" id="mbn-more" onclick="toggleSidebar()">
     <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="12" cy="8" r="1.2" fill="currentColor"/></svg>
     More
@@ -2764,6 +2918,10 @@ contract MyContract { }"></textarea>
   <span class="sb-dot" id="sb-dot"></span>
   <span id="sb-msg" style="color:var(--text2)">Ready — connect a wallet to start</span>
   <div class="sb-space"></div>
+  <div id="footer-sync-status" onclick="openSyncSettings()" style="cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: 4px; transition: background 0.15s;">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+  <span id="footer-sync-text">Synced</span>
+</div>
   <span style="color:var(--text3)">Embr v1.0</span>
   <button class="sb-term-btn" onclick="toggleTerm()" title="Terminal (⌘`)">
     <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M2 4l4 4-4 4M8 12h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2803,6 +2961,7 @@ const HOME_ACTIONS = window.HOME_ACTIONS = [
 ];
 
 let _homeRecent
+let _lastSyncTimestamp = localStorage.getItem('embr_last_sync_time') || 0;
 
 /* STATE */
 let provider=null,signer=null,walletAddr=null;
@@ -5138,43 +5297,118 @@ async function fetchGas(){
 }
 
 /* ── TOKEN PRICES ──────────────────────────────────────── */
-const DEFAULT_TOKENS=['bitcoin','ethereum','usd-coin','tether','chainlink','uniswap','aave','maker'];
-let _tokenFavs=JSON.parse(localStorage.getItem('embr_tokens')||JSON.stringify(DEFAULT_TOKENS));
-let _tokenData={};
+// 1. Storage Fix & Initialization
+let _tokenFavs = JSON.parse(localStorage.getItem('embr_tokens'));
+if (!Array.isArray(_tokenFavs)) {
+  // If corrupted or empty, restore the defaults!
+  _tokenFavs = ['bitcoin', 'ethereum', 'solana'];
+  localStorage.setItem('embr_tokens', JSON.stringify(_tokenFavs));
+}
+let _tokenData = {}; // Temporary cache for live prices
 let _tokenSearchResults=[];
 let _tokenSearchFocused=-1;
 
-async function loadTokenPrices(){
-  if(!_tokenFavs.length){document.getElementById('tw-grid').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text3);padding:12px 0">No tokens added. Search to add.</div>';return;}
-  try{
-    const ids=_tokenFavs.join(',');
-    const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=false`,{signal:AbortSignal.timeout(8000)});
-    if(!r.ok)throw new Error('Price fetch failed');
-    const data=await r.json();
-    _tokenData=data;
+/* ── BULLETPROOF TOKEN WATCHLIST (CoinGecko + Proxy Fallback) ── */
+
+// 4. Fetcher & PREMIUM EMPTY STATE
+async function loadTokenPrices() {
+  const grid = document.getElementById('tw-grid');
+  
+  // ── THE PREMIUM EMPTY STATE ──
+  if (!_tokenFavs || !_tokenFavs.length) {
+    if(grid) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; border: 1px dashed var(--border); border-radius: var(--r2); background: var(--surface); color: var(--text3); text-align: center; margin-top: 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.6;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span style="font-size: 13px; font-weight: 600; color: var(--text2);">Your watchlist is empty</span>
+          <span style="font-size: 12px; margin-top: 4px;">Search for a token above to add it to your dashboard.</span>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  try {
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${_tokenFavs.join(',')}`;
+    let json;
+    
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Rate Limit Hit');
+      json = await res.json();
+    } catch (err) {
+      const proxyRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+      json = await proxyRes.json();
+    }
+    
+    if (!Array.isArray(json)) throw new Error("Invalid API Response");
+
+    json.forEach(coin => {
+      _tokenData[coin.id] = {
+        symbol: coin.symbol.toUpperCase(),
+        usd: coin.current_price || 0,
+        usd_24h_change: coin.price_change_percentage_24h || 0,
+        image: coin.image
+      };
+    });
+
     renderTokenGrid();
-  }catch(e){
-    document.getElementById('tw-grid').innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text3);padding:12px 0">Could not load prices. Try again later.</div>';
+  } catch (err) {
+    console.error('Price fetch failed:', err);
+    if(grid && grid.innerHTML === '') {
+      grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:#ef4444;padding:12px 0">Failed to load prices.</div>';
+    }
   }
 }
 
-async function tokenSearch(){
-  const q=document.getElementById('tw-search').value.trim();
-  const dd=document.getElementById('tw-dropdown');
-  _tokenSearchFocused=-1;
-  if(!q){dd.classList.remove('show');return;}
-  try{
-    const r=await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`,{signal:AbortSignal.timeout(5000)});
-    const d=await r.json();
-    _tokenSearchResults=(d.coins||[]).slice(0,6);
-    dd.innerHTML=_tokenSearchResults.map((c,i)=>`
-      <div class="tw-drop-item" id="tdi-${i}" onclick="addToken('${c.id}')">
-        ${c.thumb?`<img src="${c.thumb}" width="18" height="18" style="border-radius:50%" onerror="this.style.display='none'"/>`:
-          `<div style="width:18px;height:18px;border-radius:50%;background:var(--surface3);flex-shrink:0"></div>`}
-        <div style="min-width:0"><div class="tw-drop-sym">${c.symbol?.toUpperCase()||'?'}</div><div class="tw-drop-name">${c.name||''}</div></div>
-      </div>`).join('');
-    dd.classList.toggle('show',_tokenSearchResults.length>0);
-  }catch(_){dd.classList.remove('show');}
+// 3. Search Function
+let _searchTimeout = null;
+async function tokenSearch() {
+  const input = document.getElementById('tw-search').value.trim().toLowerCase();
+  const drop = document.getElementById('tw-dropdown');
+  
+  if (input.length < 2) { 
+    drop.classList.remove('show'); 
+    return; 
+  }
+
+  clearTimeout(_searchTimeout);
+  _searchTimeout = setTimeout(async () => {
+    try {
+      drop.innerHTML = '<div style="padding:8px;color:var(--text3);font-size:12px;">Searching...</div>';
+      drop.classList.add('show');
+
+      const url = `https://api.coingecko.com/api/v3/search?query=${input}`;
+      let json;
+      
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Rate Limit');
+        json = await res.json();
+      } catch (err) {
+        // Proxy Fallback
+        const proxyRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+        json = await proxyRes.json();
+      }
+
+      if (!json.coins || !json.coins.length) {
+        drop.innerHTML = '<div style="padding:8px;color:var(--text3);font-size:12px;">No tokens found</div>';
+      } else {
+        _tokenSearchResults = json.coins.slice(0, 6);
+        _tokenSearchFocused = -1;
+        drop.innerHTML = _tokenSearchResults.map((tok,i) => `
+          <div class="tw-drop-item" id="tdi-${i}" onmousedown="addToken('${tok.id}')">
+            ${tok.thumb ? `<img src="${tok.thumb}" width="18" height="18" style="border-radius:50%;flex-shrink:0" onerror="this.style.display='none'"/>` : ''}
+            <div style="min-width:0">
+              <div class="tw-drop-sym">${tok.symbol.toUpperCase()}</div>
+              <div class="tw-drop-name">${tok.name}</div>
+            </div>
+          </div>`).join('');
+      }
+    } catch (err) {
+      drop.innerHTML = '<div style="padding:8px;color:#ef4444;font-size:12px;">Search unavailable</div>';
+    }
+  }, 500); 
 }
 
 function tokenSearchKey(e){
@@ -5186,43 +5420,72 @@ function tokenSearchKey(e){
   else if(e.key==='Escape'){dd.classList.remove('show');}
 }
 
-async function addToken(id){
-  if(_tokenFavs.includes(id)){toast('Already in your list','warn');return;}
+// 2. Add / Remove Functions
+async function addToken(id) {
+  if (_tokenFavs.includes(id)) {
+    if (typeof toast === 'function') toast('Already in your list', 'warn'); 
+    else alert('Already in your list');
+    return;
+  }
+  
   _tokenFavs.push(id);
-  localStorage.setItem('embr_tokens',JSON.stringify(_tokenFavs));
-  document.getElementById('tw-search').value='';
-  document.getElementById('tw-dropdown').classList.remove('show');
+  localStorage.setItem('embr_tokens', JSON.stringify(_tokenFavs));
+  
+  const inp = document.getElementById('tw-search');
+  const drp = document.getElementById('tw-dropdown');
+  if(inp) inp.value = '';
+  if(drp) drp.classList.remove('show');
+  _tokenSearchResults = [];
+  _tokenSearchFocused = -1;
   await loadTokenPrices();
 }
 
-function removeToken(id){
-  _tokenFavs=_tokenFavs.filter(t=>t!==id);
-  localStorage.setItem('embr_tokens',JSON.stringify(_tokenFavs));
+function removeToken(id) {
+  _tokenFavs = _tokenFavs.filter(t => t !== id);
+  localStorage.setItem('embr_tokens', JSON.stringify(_tokenFavs));
   delete _tokenData[id];
-  renderTokenGrid();
+  if(_tokenFavs.length === 0) loadTokenPrices();
+  else renderTokenGrid();
 }
+function renderTokenGrid() {
+  const grid = document.getElementById('tw-grid');
+  if (!grid) return;
 
-function renderTokenGrid(){
-  const grid=document.getElementById('tw-grid');
-  if(!grid)return;
-  const tokens=Object.entries(_tokenData);
-  if(!tokens.length){grid.innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text3);padding:12px 0">Loading…</div>';return;}
-  grid.innerHTML=tokens.map(([id,td])=>{
-    const price=td.usd||0;
-    const change=(td.usd_24h_change||0).toFixed(2);
-    const up=parseFloat(change)>=0;
-    const priceStr=price>=1?'$'+price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+price.toFixed(6);
-    const name=id.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-    return`<div class="token-card">
-      <div class="token-card-top">
-        <img class="token-logo" src="https://assets.coingecko.com/coins/images/1/thumb/${id.replace(/ /g,'-')}.png" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2222%22 height=%2222%22><rect width=%2222%22 height=%2222%22 rx=%2211%22 fill=%22%23222%22/></svg>'" alt="${id}"/>
-        <span class="token-sym">${id.toUpperCase().slice(0,5)}</span>
+  // Fallback: If grid tries to render when empty, trigger the empty state UI
+  if (!_tokenFavs || !_tokenFavs.length) {
+      loadTokenPrices();
+      return;
+  }
+
+  grid.innerHTML = _tokenFavs.map(id => {
+    const td = _tokenData[id];
+    if (!td) return ''; // Skip if API hasn't loaded this token yet
+
+    const price = td.usd;
+    const change = td.usd_24h_change.toFixed(2);
+    const up = parseFloat(change) >= 0;
+    
+    const priceStr = price >= 1 ? '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$' + price.toFixed(6);
+
+    const arrowIcon = up 
+      ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>` 
+      : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>`;
+
+    return `
+      <div class="token-card">
+        <div class="tc-top">
+          <div class="tc-id">
+            <img src="${td.image}" onerror="this.style.display='none'" alt="${td.symbol}"/>
+            <span class="tc-sym">${td.symbol}</span>
+          </div>
+          <button class="tc-del" onclick="removeToken('${id}')" title="Remove Token">×</button>
+        </div>
+        <div class="tc-price">${priceStr}</div>
+        <div class="tc-change ${up ? 'up' : 'down'}">
+          ${arrowIcon} ${Math.abs(change)}%
+        </div>
       </div>
-      <div class="token-name">${name}</div>
-      <div class="token-price">${priceStr}</div>
-      <div class="token-change ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(change)}% 24h</div>
-      <button class="token-del" onclick="removeToken('${id}')" title="Remove">×</button>
-    </div>`;
+    `;
   }).join('');
 }
 
@@ -5404,12 +5667,24 @@ function termRun(raw){
   const args=parts.slice(1);
 
   if(TERM_CMDS[cmd]){TERM_CMDS[cmd].fn(args);return;}
+  
 
   // Multi-word commands
+  
   if(cmd==='go'){
     const tab=args[0];
     if(['home','interact','deploy','tools','networks','notes','settings'].includes(tab)){showTab(tab);tLine('Navigated to '+tab,'t-ok');}
     else tLine('Unknown tab: '+tab+'. Try: home|interact|deploy|tools|networks|notes|settings','t-err');
+    return;
+  }
+  if (cmd === 'push' || cmd === 'sync push') {
+    pushWorkspaceToGist();
+    tLine('Pushed to cloud');
+    return;
+  }
+  if (cmd === 'pull' || cmd === 'sync pull') {
+    pullWorkspaceFromGist();
+    tLine('Pulled from cloud');
     return;
   }
   if(cmd==='connect'){
@@ -5519,6 +5794,7 @@ function showTab(t){
   if(mainEl) mainEl.scrollTop = 0;
 
   if(t === 'networks') loadNetworks();
+  if(t === 'settings') loadSyncSettings();
   if(t === 'notes'){
     if(window.innerWidth <= 768){
       document.querySelector('.notes-shell')?.classList.remove('mob-page-open');
@@ -5971,6 +6247,234 @@ function applyMention(page, editor) {
     notesSave();
   }
 }
+
+/* ── GITHUB GIST WORKSPACE SYNC ── */
+
+// Save token and ID locally so they don't have to re-enter it
+function saveSyncSettings() {
+  localStorage.setItem('embr_gh_token', document.getElementById('sync-gh-token').value.trim());
+  localStorage.setItem('embr_gist_id', document.getElementById('sync-gist-id').value.trim());
+}
+
+// Load token and ID on startup
+function loadSyncSettings() {
+  const token = localStorage.getItem('embr_gh_token');
+  const gistId = localStorage.getItem('embr_gist_id');
+  if (token) document.getElementById('sync-gh-token').value = token;
+  if (gistId) document.getElementById('sync-gist-id').value = gistId;
+}
+// Add loadSyncSettings() to your general initialization/startup function!
+
+function setSyncStatus(msg, isError = false) {
+  const el = document.getElementById('sync-status');
+  el.style.display = 'block';
+  el.style.color = isError ? '#ef4444' : '#10b981';
+  el.textContent = msg;
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// 1. PUSH: Gather localStorage and send to GitHub
+async function pushWorkspaceToGist() {
+  const token = document.getElementById('sync-gh-token').value.trim();
+  let gistId = document.getElementById('sync-gist-id').value.trim();
+  
+  if (!token) return setSyncStatus("Error: GitHub Token required.", true);
+  
+  setSyncStatus("Gathering workspace data...");
+
+  // Grab all the critical data from your app
+  const workspaceState = {
+    notes: localStorage.getItem('embr_notes') || '{}',
+    networks: localStorage.getItem('embr_networks') || '[]',
+    tokens: localStorage.getItem('embr_tokens') || '{}',
+    pinned: localStorage.getItem('embr_pinboard') || '[]',
+    abis: localStorage.getItem('embr_saved_abis') || '[]'
+  };
+
+  const payload = {
+    description: "Embr_Workspace_Backup_v1",
+    public: false, // EXTREMELY IMPORTANT: Keeps notes private
+    files: {
+      "embr-workspace.json": {
+        content: JSON.stringify(workspaceState, null, 2)
+      }
+    }
+  };
+
+  try {
+    setSyncStatus("Uploading to GitHub...");
+    
+    // If Gist ID exists, we update it (PATCH). If not, we create it (POST).
+    const method = gistId ? 'PATCH' : 'POST';
+    const url = gistId ? `https://api.github.com/gists/${gistId}` : 'https://api.github.com/gists';
+
+    const res = await fetch(url, {
+      method: method,
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error(`GitHub API Error: ${res.status}`);
+    
+    const data = await res.json();
+    
+    // If we just created a new one, save the new ID
+    if (!gistId) {
+      document.getElementById('sync-gist-id').value = data.id;
+      saveSyncSettings();
+    }
+
+    localStorage.setItem('embr_last_sync_time', Date.now());
+    
+    setSyncStatus(`✅ Successfully pushed at ${new Date().toLocaleTimeString()}`);
+  } catch (err) {
+    console.error(err);
+    setSyncStatus(err.message, true);
+  }
+}
+
+// 2. PULL: Fetch from GitHub and overwrite localStorage
+async function pullWorkspaceFromGist() {
+  const token = document.getElementById('sync-gh-token').value.trim();
+  const gistId = document.getElementById('sync-gist-id').value.trim();
+  
+  if (!token || !gistId) return setSyncStatus("Error: Token and Gist ID required to pull.", true);
+  
+  if (!confirm("⚠️ This will overwrite your current device's workspace with the cloud version. Proceed?")) return;
+
+  try {
+    setSyncStatus("Downloading workspace...");
+    
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${token}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Could not find Gist. Check your ID and Token.");
+    
+    const data = await res.json();
+    const file = data.files['embr-workspace.json'];
+    
+    if (!file) throw new Error("Invalid Gist format. Cannot find embr-workspace.json");
+    
+    const workspaceState = JSON.parse(file.content);
+
+    // Carefully overwrite localStorage
+    if (workspaceState.notes) localStorage.setItem('embr_notes', workspaceState.notes);
+    if (workspaceState.networks) localStorage.setItem('embr_networks', workspaceState.networks);
+    if (workspaceState.tokens) localStorage.setItem('embr_tokens', workspaceState.tokens);
+    if (workspaceState.pinned) localStorage.setItem('embr_pinboard', workspaceState.pinned);
+    if (workspaceState.abis) localStorage.setItem('embr_saved_abis', workspaceState.abis);
+
+    setSyncStatus("✅ Workspace loaded! Refreshing app...");
+    localStorage.setItem('embr_last_sync_time', Date.now());
+    
+    // Force a hard reload so the UI updates with the new data
+    setTimeout(() => window.location.reload(), 1000);
+
+  } catch (err) {
+    console.error(err);
+    setSyncStatus(err.message, true);
+  }
+}
+
+// 3. AUTO-FIND: Scans GitHub for an existing Embr Gist
+async function findExistingGist() {
+  const token = document.getElementById('sync-gh-token').value.trim();
+  if (!token) return setSyncStatus("Please enter your GitHub PAT first.", true);
+
+  try {
+    setSyncStatus("Searching your GitHub for existing Embr backups...");
+    const res = await fetch('https://api.github.com/gists', {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${token}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Failed to search Gists. Check your PAT.");
+    const gists = await res.json();
+    
+    // Look for our specific unique identifier!
+    const embrGist = gists.find(g => g.description === "Embr_Workspace_Backup_v1");
+    
+    if (embrGist) {
+      document.getElementById('sync-gist-id').value = embrGist.id;
+      saveSyncSettings();
+      setSyncStatus(`✅ Found existing Sync ID! You can now Pull your data.`);
+    } else {
+      setSyncStatus("No existing Embr backup found. You can Push to create a new one!", false);
+    }
+  } catch (err) {
+    console.error(err);
+    setSyncStatus(err.message, true);
+  }
+}
+
+// Shows the popup for 2.5 seconds only on mobile
+function showMobileToast(msg) {
+  if (window.innerWidth > 768) return; // Ignore on desktop
+  const toast = document.getElementById('mob-toast');
+  if (!toast) return;
+  toast.innerHTML = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* ── CHECK FOR CLOUD UPDATES ON BOOT ── */
+async function checkForCloudUpdates() {
+  const token = localStorage.getItem('embr_gh_token');
+  const gistId = localStorage.getItem('embr_gist_id');
+  const lastSync = parseInt(localStorage.getItem('embr_last_sync_time') || '0', 10);
+  
+  if (!token || !gistId) return; // Not set up yet
+
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${token}`
+      }
+    });
+
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    // Convert GitHub's ISO timestamp to milliseconds
+    const cloudTimestamp = new Date(data.updated_at).getTime();
+
+    const footerText = document.getElementById('footer-sync-text');
+    const footerStatus = document.getElementById('footer-sync-status');
+
+    if (cloudTimestamp > lastSync + 5000) { 
+      // Cloud is newer! (5s buffer for clock drift)
+      footerText.textContent = "Updates Available";
+      footerStatus.style.color = "#f59e0b"; // Orange alert color
+      footerStatus.style.background = "rgba(245, 158, 11, 0.1)";
+      
+      // Override the click to instantly pull instead of opening settings
+      footerStatus.onclick = () => {
+        pullWorkspaceFromGist();
+        footerText.textContent = "Synced";
+        footerStatus.style.color = "inherit";
+        footerStatus.style.background = "transparent";
+      };
+    } else {
+      footerText.textContent = "Synced";
+    }
+  } catch (err) {
+    console.warn("Could not check cloud status:", err);
+  }
+}
+
+// Run this 2 seconds after the app boots so it doesn't slow down the UI
+setTimeout(checkForCloudUpdates, 2000);
+setTimeout(loadSyncSettings, 500); // Loads the PAT on startup
 
 </script>
 </body>
