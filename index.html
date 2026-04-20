@@ -1009,6 +1009,13 @@ select{cursor:pointer;font-family:var(--ui);}
 .st-picker{position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:9999;overflow:hidden;min-width:160px;}
 .st-picker-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:13px;color:var(--text2);transition:background .1s;}
 .st-picker-item:hover{background:var(--hover);color:var(--text);}
+/* Priority badges */
+.priority-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:500;font-family:var(--ui);}
+.pr-none{background:rgba(148,163,184,.08);color:#94a3b8;}
+.pr-low{background:rgba(59,130,246,.1);color:#60a5fa;}
+.pr-medium{background:rgba(245,158,11,.1);color:#fbbf24;}
+.pr-high{background:rgba(239,68,68,.1);color:#f87171;}
+.pr-urgent{background:rgba(239,68,68,.2);color:#ef4444;font-weight:600;}
 
 /* ── BOARD VIEW ── */
 .board-wrap{flex:1;display:flex;gap:12px;padding:16px 24px 32px;overflow-x:auto;}
@@ -2541,6 +2548,12 @@ contract MyContract { }"></textarea>
         </div>
       </div>
       <div class="cm-prop">
+        <div class="cm-prop-label">Priority</div>
+        <div class="cm-prop-value" id="cm-priority-val" onclick="openPriorityPicker(this)">
+          <span class="priority-badge pr-none">— No priority</span>
+        </div>
+      </div>
+      <div class="cm-prop">
         <div class="cm-prop-label">Created</div>
         <div class="cm-prop-value" style="cursor:default;color:var(--text3);font-size:11px;font-family:var(--mono)" id="cm-created">—</div>
       </div>
@@ -2560,6 +2573,8 @@ contract MyContract { }"></textarea>
 <div class="icon-picker" id="icon-picker" style="display:none"></div>
 <!-- Status picker (shared) -->
 <div class="st-picker" id="st-picker" style="display:none"></div>
+<!-- Priority picker (shared) -->
+<div class="st-picker" id="pr-picker" style="display:none"></div>
 
 </div>
 <!-- ══ /NOTES ══ -->
@@ -4251,6 +4266,14 @@ const STATUSES = [
   {id:'cancelled',    label:'Cancelled',    cls:'st-cancelled',    dot:'dot-cancelled',    color:'#f87171'},
 ];
 
+const PRIORITIES = [
+  {id:'none',   label:'No priority', icon:'—',  cls:'pr-none'},
+  {id:'low',    label:'Low',         icon:'↓',  cls:'pr-low'},
+  {id:'medium', label:'Medium',      icon:'→',  cls:'pr-medium'},
+  {id:'high',   label:'High',        icon:'↑',  cls:'pr-high'},
+  {id:'urgent', label:'Urgent',      icon:'⚡', cls:'pr-urgent'},
+];
+
 const ICONS = ['📋','📄','📝','🗒','📌','📎','🔖','⭐','💡','🚀','⚡','🔧','🔑','💎','🌟','✅','❌','⏳','🎯','🏗','📊','📈','🔍','💬','🗂','📁','📂','🖥','💻','⚙','🛠','🔐','🌐','⬡','🎨','📐','🧩'];
 
 const SLASH_CMDS = [
@@ -5105,16 +5128,19 @@ function buildBoardView(page){
 
 function buildKCard(task, pageId, status){
   const st=STATUSES.find(s=>s.id===task.status)||STATUSES[0];
+  const pr=PRIORITIES.find(p=>p.id===(task.priority||'none'))||PRIORITIES[0];
   const card=document.createElement('div');
   card.className='kcard';card.draggable=true;
   card.dataset.taskId=task.id;card.dataset.pageId=pageId;card.dataset.status=status;
   const desc=task.description?`<div class="kcard-desc">${task.description.replace(/<[^>]*>/g,'').slice(0,80)}${task.description.length>80?'…':''}</div>`:'';
   const date=new Date(task.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const prBadge=pr.id!=='none'?`<span class="priority-badge ${pr.cls}" style="font-size:10px">${pr.icon} ${pr.label}</span>`:'';
   card.innerHTML=`
     <div class="kcard-title">${task.title||'Untitled'}</div>
     ${desc}
     <div class="kcard-footer">
       <span class="status-badge ${st.cls}" style="font-size:10px"><span class="status-dot ${st.dot}" style="width:6px;height:6px"></span>${st.label}</span>
+      ${prBadge}
       <span class="kcard-date">${date}</span>
       <button class="kcard-menu" onclick="openCardModal(event,'${pageId}','${task.id}')" title="Edit">•••</button>
     </div>`;
@@ -5199,7 +5225,7 @@ function tableStatusPick(e, pageId, taskId){
 function notesAddTask(){
   const page=_notes.pages.find(p=>p.id===_curPageId);
   if(!page)return;
-  const task={id:nuid(),title:'',status:'not-started',description:'',createdAt:Date.now(),updatedAt:Date.now()};
+  const task={id:nuid(),title:'',status:'not-started',priority:'none',description:'',createdAt:Date.now(),updatedAt:Date.now()};
   page.tasks.push(task);
   notesSave();
   openCardModal(null,page.id,task.id);
@@ -5208,7 +5234,7 @@ function notesAddTask(){
 function notesAddTaskStatus(pageId, status){
   const page=_notes.pages.find(p=>p.id===pageId);
   if(!page)return;
-  const task={id:nuid(),title:'',status,description:'',createdAt:Date.now(),updatedAt:Date.now()};
+  const task={id:nuid(),title:'',status,priority:'none',description:'',createdAt:Date.now(),updatedAt:Date.now()};
   page.tasks.push(task);
   notesSave();
   openCardModal(null,pageId,task.id);
@@ -5230,10 +5256,13 @@ function openCardModal(e, pageId, taskId){
   if(!task)return;
   _editingCard=task;_editingPageId=pageId;
   const st=STATUSES.find(s=>s.id===task.status)||STATUSES[0];
+  const pr=PRIORITIES.find(p=>p.id===(task.priority||'none'))||PRIORITIES[0];
   document.getElementById('cm-icon').textContent=task.icon||'📝';
   document.getElementById('cm-title').value=task.title||'';
   document.getElementById('cm-status-val').innerHTML=`<span class="status-badge ${st.cls}"><span class="status-dot ${st.dot}"></span>${st.label}</span>`;
   document.getElementById('cm-status-val').dataset.statusId=task.status;
+  document.getElementById('cm-priority-val').innerHTML=`<span class="priority-badge ${pr.cls}">${pr.icon} ${pr.label}</span>`;
+  document.getElementById('cm-priority-val').dataset.priorityId=task.priority||'none';
   document.getElementById('cm-created').textContent=new Date(task.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   
   const cmEditor = document.getElementById('cm-editor');
@@ -5264,6 +5293,7 @@ function saveCardModal(){
   if(!_editingCard)return;
   _editingCard.title=document.getElementById('cm-title').value;
   _editingCard.status=document.getElementById('cm-status-val').dataset.statusId||'not-started';
+  _editingCard.priority=document.getElementById('cm-priority-val').dataset.priorityId||'none';
   _editingCard.description=document.getElementById('cm-editor').innerHTML;
   _editingCard.icon=document.getElementById('cm-icon').textContent;
   _editingCard.updatedAt=Date.now();
@@ -5305,6 +5335,30 @@ function openStatusPickerFor(anchor, callback){
 
 function closeStatusPicker(){
   const p=document.getElementById('st-picker');if(p)p.style.display='none';
+}
+
+/* ── PRIORITY PICKER ─────────────────────────────────────────────── */
+function openPriorityPicker(triggerEl){
+  closePriorityPicker();
+  const rect=triggerEl.getBoundingClientRect();
+  const picker=document.getElementById('pr-picker');
+  picker.innerHTML='';
+  PRIORITIES.forEach(pr=>{
+    const item=document.createElement('div');item.className='st-picker-item';
+    item.innerHTML=`<span class="priority-badge ${pr.cls}">${pr.icon} ${pr.label}</span>`;
+    item.onclick=()=>{
+      triggerEl.innerHTML=`<span class="priority-badge ${pr.cls}">${pr.icon} ${pr.label}</span>`;
+      triggerEl.dataset.priorityId=pr.id;
+      closePriorityPicker();
+    };
+    picker.appendChild(item);
+  });
+  picker.style.cssText=`display:block;top:${rect.bottom+4}px;left:${rect.left}px;`;
+  setTimeout(()=>document.addEventListener('click',closePriorityPicker,{once:true}),50);
+}
+
+function closePriorityPicker(){
+  const p=document.getElementById('pr-picker');if(p)p.style.display='none';
 }
 
 /* ── ICON PICKER ─────────────────────────────────────────────────── */
@@ -5523,7 +5577,7 @@ document.addEventListener('keydown',e=>{
     else if(e.key==='6'){e.preventDefault();showTab('notes');}
     else if(e.key==='7'){e.preventDefault();showTab('prices');}
     else if(e.key==='8'){e.preventDefault();showTab('settings');}
-    else if(e.key==='b'){e.preventDefault();openBookmarkModal();}
+    else if(e.key==='b'&&!inInput){e.preventDefault();openBookmarkModal();}
   }
   // / to focus home search when on home, not typing
   if(e.key==='/'&&!inInput&&document.getElementById('panel-home')?.classList.contains('active')){
@@ -6519,8 +6573,8 @@ function applyMention(page, editor) {
   const pill = document.createElement('span');
   pill.className = 'mention-link';
   pill.contentEditable = 'false'; // IMPORTANT: Prevents cursor getting trapped inside
+  pill.dataset.pageId = page.id;
   pill.innerHTML = `${page.icon || '📄'} ${page.title || 'Untitled'}`;
-  pill.onclick = () => notesOpenPage(page.id); // Triggers page load
   
   // 3. Insert the pill and a trailing space so the user can keep typing
   sel.getRangeAt(0).insertNode(pill);
@@ -6543,6 +6597,22 @@ function applyMention(page, editor) {
     }
   }
 }
+
+/* ── MENTION CLICK DELEGATION ── */
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.mention-link[data-page-id]');
+  if (!pill) return;
+  const pageId = pill.dataset.pageId;
+  if (!pageId) return;
+  // Close card modal if open before navigating
+  const cardModal = document.getElementById('card-modal-mask');
+  if (cardModal?.classList.contains('open')) {
+    cardModal.classList.remove('open');
+    _editingCard = null; _editingPageId = null;
+  }
+  showTab('notes');
+  notesOpenPage(pageId);
+});
 
 /* ── GITHUB GIST WORKSPACE SYNC ── */
 
@@ -6580,7 +6650,11 @@ async function pushWorkspaceToGist() {
 
   // Grab all the critical data from your app
   const workspaceState = {
-    notes: localStorage.getItem('embr_notes') || '{}',
+    notes: localStorage.getItem('cipher_notes') || '{"pages":[]}',
+    notesExpanded: localStorage.getItem('cipher_notes_expanded') || '[]',
+    lastNoteId: localStorage.getItem('embr_last_note_id') || '',
+    bookmarks: localStorage.getItem('embr_bookmarks') || '[]',
+    tags: localStorage.getItem('embr_tags') || '[]',
     networks: localStorage.getItem('embr_networks') || '[]',
     tokens: localStorage.getItem('embr_tokens') || '{}',
     pinned: localStorage.getItem('embr_pinboard') || '[]',
@@ -6661,7 +6735,11 @@ async function pullWorkspaceFromGist() {
     const workspaceState = JSON.parse(file.content);
 
     // Carefully overwrite localStorage
-    if (workspaceState.notes) localStorage.setItem('embr_notes', workspaceState.notes);
+    if (workspaceState.notes) localStorage.setItem('cipher_notes', workspaceState.notes);
+    if (workspaceState.notesExpanded) localStorage.setItem('cipher_notes_expanded', workspaceState.notesExpanded);
+    if (workspaceState.lastNoteId) localStorage.setItem('embr_last_note_id', workspaceState.lastNoteId);
+    if (workspaceState.bookmarks) localStorage.setItem('embr_bookmarks', workspaceState.bookmarks);
+    if (workspaceState.tags) localStorage.setItem('embr_tags', workspaceState.tags);
     if (workspaceState.networks) localStorage.setItem('embr_networks', workspaceState.networks);
     if (workspaceState.tokens) localStorage.setItem('embr_tokens', workspaceState.tokens);
     if (workspaceState.pinned) localStorage.setItem('embr_pinboard', workspaceState.pinned);
