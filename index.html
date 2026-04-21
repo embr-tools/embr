@@ -1625,7 +1625,32 @@ select{cursor:pointer;font-family:var(--ui);}
 
   /* Bottom nav visibility */
   .mob-nav { display: flex !important; }
+  /* Show FAB only when sync is configured (JS adds mob-sync-active class to body) */
+  body.mob-sync-active #mob-sync-fab { display: flex !important; }
 }
+
+/* Mobile sync FAB — hidden on desktop */
+#mob-sync-fab {
+  display: none;
+  position: fixed; bottom: 68px; right: 16px;
+  width: 46px; height: 46px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(16,185,129,.45);
+  align-items: center; justify-content: center;
+  z-index: 101; transition: transform .15s, box-shadow .15s;
+}
+#mob-sync-fab:active { transform: scale(.93); box-shadow: 0 2px 8px rgba(16,185,129,.3); }
+#mob-sync-fab-dot {
+  display: none; position: absolute; top: 4px; right: 4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #f59e0b; border: 2px solid var(--surface);
+}
+#mob-sync-fab.has-updates #mob-sync-fab-dot { display: block; }
+#mob-sync-fab.spinning #mob-sync-fab-icon {
+  animation: fab-spin .8s linear infinite;
+}
+@keyframes fab-spin { to { transform: rotate(360deg); } }
 
 /* Mobile bottom nav — hidden on desktop */
 .mob-nav {
@@ -2793,6 +2818,14 @@ contract MyContract { }"></textarea>
         <b style="color:var(--text2);">First time?</b> Just paste your PAT and click Push. We will automatically create your secure cloud file and generate an ID. Use this ID to import your data on other devices.
       </div>
     </div>
+
+    <div>
+      <label style="font-size:12px; color:var(--text2); margin-bottom:6px; display:block;">Encryption Password <span style="color:var(--accent);font-weight:600;">🔒</span></label>
+      <input type="password" id="sync-enc-pass" placeholder="Set a password to encrypt your backup" oninput="saveSyncSettings()" style="width:100%; background:var(--page); border:1px solid var(--divider); color:var(--text); padding:10px 12px; border-radius:6px; font-family:var(--mono); font-size:14px; outline:none;">
+      <div style="font-size:11.5px; color:var(--text3); margin-top:8px; line-height:1.4;">
+        <b style="color:var(--text2);">Strongly recommended.</b> Your backup is encrypted with AES-256-GCM before uploading. Anyone with the Gist ID cannot read your data without this password. Stored in session only — re-enter after closing the tab.
+      </div>
+    </div>
   </div>
 
 <div style="display:flex; gap:10px; margin-top:16px;">
@@ -2997,6 +3030,15 @@ contract MyContract { }"></textarea>
 
 
 
+<!-- Mobile sync FAB (only visible on mobile when sync is configured) -->
+<button id="mob-sync-fab" onclick="quickPullSync()" title="Pull from cloud" style="display:none">
+  <svg id="mob-sync-fab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="1 4 1 10 7 10"></polyline>
+    <path d="M3.51 15a9 9 0 1 0 .49-4.5"></path>
+  </svg>
+  <span id="mob-sync-fab-dot"></span>
+</button>
+
 <!-- Mobile bottom nav -->
 <nav class="mob-nav" id="mob-nav">
   <button class="mob-nav-btn active" id="mbn-home" onclick="showTab('home')">
@@ -3039,7 +3081,7 @@ contract MyContract { }"></textarea>
   <span class="sb-dot" id="sb-dot"></span>
   <span id="sb-msg" style="color:var(--text2)">Ready — connect a wallet to start</span>
   <div class="sb-space"></div>
-  <div id="footer-sync-status" onclick="openSyncSettings()" style="cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: 4px; transition: background 0.15s;">
+  <div id="footer-sync-status" onclick="quickPullSync()" style="cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: 4px; transition: background 0.15s;" title="Click to pull latest from cloud">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
   <span id="footer-sync-text">Synced</span>
 </div>
@@ -3352,7 +3394,7 @@ async function compileSol(){
     for(const name of Object.keys(cs)){const c=cs[name];compiledABI=c.abi;compiledBytecode=c.evm?.bytecode?.object;const bl=(compiledBytecode?.length/2)||0;await tLine('term-out',name+'  —  '+compiledABI.length+' ABI items  —  '+bl+' bytes','t-hi');if(bl>24576)await tLine('term-out','Exceeds 24 KB mainnet limit','t-warn');}
     await tLine('term-out','Build successful','t-ok');setTStatus('term-dot','term-status','ok','Success');setSt('Compiled','g');
     const ctor=compiledABI.find(f=>f.type==='constructor');const cc=document.getElementById('ctor-card');
-    if(ctor?.inputs?.length){cc.style.display='block';document.getElementById('ctor-args').innerHTML=ctor.inputs.map((inp,i)=>`<div class="prop-row"><div class="prop-label" style="font-family:var(--mono);font-size:11px">${inp.name||'arg'+i}<br/><span style="color:var(--text3)">${inp.type}</span></div><div class="prop-value"><input id="ctor_${i}" type="text" placeholder="${inp.type}"/></div></div>`).join('');}else cc.style.display='none';
+    if(ctor?.inputs?.length){cc.style.display='block';document.getElementById('ctor-args').innerHTML=ctor.inputs.map((inp,i)=>`<div class="prop-row"><div class="prop-label" style="font-family:var(--mono);font-size:11px">${_h(inp.name||'arg'+i)}<br/><span style="color:var(--text3)">${_h(inp.type)}</span></div><div class="prop-value"><input id="ctor_${i}" type="text" placeholder="${_h(inp.type)}"/></div></div>`).join('');}else cc.style.display='none';
     document.getElementById('deploy-btn').disabled=false;toast('Compiled successfully','ok');
   }catch(e){await tLine('term-out','Runtime error: '+e.message,'t-err');setTStatus('term-dot','term-status','err','Error');console.error(e);toast(e.message,'err');}
 }
@@ -3507,7 +3549,7 @@ function encLoadFunctions(){
     _encABI=JSON.parse(raw);
     const fns=_encABI.filter(f=>f.type==='function');
     if(!fns.length){sel.innerHTML='<option value="">No functions found in ABI</option>';return;}
-    sel.innerHTML='<option value="">— select function —</option>'+fns.map(f=>`<option value="${f.name}">${f.name}(${(f.inputs||[]).map(i=>i.type).join(',')})</option>`).join('');
+    sel.innerHTML='<option value="">— select function —</option>'+fns.map(f=>`<option value="${_h(f.name)}">${_h(f.name)}(${(f.inputs||[]).map(i=>_h(i.type)).join(',')})</option>`).join('');
     encBuildParams();
   }catch(e){sel.innerHTML='<option value="">Invalid ABI JSON</option>';_encABI=null;}
 }
@@ -3522,8 +3564,8 @@ function encBuildParams(){
   div.innerHTML=fn.inputs.map((inp,i)=>`
     <div class="param-row">
       <div style="min-width:130px;flex-shrink:0">
-        <div style="font-size:12px;font-weight:500;color:var(--text)">${inp.name||'param'+i}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${inp.type}</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text)">${_h(inp.name||'param'+i)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${_h(inp.type)}</div>
       </div>
       <input class="param-input" id="enc-p-${i}" placeholder="${_encPlaceholder(inp.type)}" />
     </div>`).join('');
@@ -3831,7 +3873,10 @@ function _bestRPC(rpcs){
   return pub[0]||strs.filter(r=>r.startsWith('https://'))[0]||'';
 }
 
-function _esc(s){return String(s||'').replace(/\\/g,'\\').replace(/'/g,"\\'").slice(0,120);}
+// Escapes a value for safe use inside a JS single-quoted string within an HTML attribute
+function _esc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/</g,'\\x3C').replace(/>/g,'\\x3E').replace(/"/g,'\\x22').slice(0,200);}
+// Escapes a value for safe display as HTML text content
+function _h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 async function netAdd(chainId,name,sym,rpc,explorer,btn){
   if(!window.ethereum)return toast('Connect MetaMask to add networks','err');
@@ -4341,7 +4386,7 @@ function buildPageNode(page, depth){
   const typeBadge = page.type!=='doc' ? `<span class="ns-page-type">${page.type}</span>` : '';
   
   // ADDED: The options button for mobile!
-  row.innerHTML = `${chevSvg}<span class="ns-page-icon">${page.icon||'📄'}</span><span class="ns-page-name">${page.title||'Untitled'}</span>${typeBadge}<button class="ns-page-opt" onclick="event.stopPropagation(); notesPageCtxMenu(event, '${page.id}')">⋮</button>`;
+  row.innerHTML = `${chevSvg}<span class="ns-page-icon">${_h(page.icon||'📄')}</span><span class="ns-page-name">${_h(page.title||'Untitled')}</span>${typeBadge}<button class="ns-page-opt" onclick="event.stopPropagation(); notesPageCtxMenu(event, '${page.id}')">⋮</button>`;
   
   wrap.appendChild(row);
 
@@ -4570,7 +4615,7 @@ function renderNotesMain(){
     subs.forEach(s=>{
       const chip=document.createElement('span');
       chip.style.cssText='display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--r);font-size:12px;cursor:pointer;background:var(--surface2);color:var(--text2);border:1px solid var(--border);transition:all .12s;';
-      chip.innerHTML=`${s.icon||'📄'} ${s.title||'Untitled'}`;
+      chip.innerHTML=`${_h(s.icon||'📄')} ${_h(s.title||'Untitled')}`;
       chip.onclick=()=>notesOpenPage(s.id);
       chip.onmouseenter=()=>{chip.style.background='var(--surface3)';chip.style.color='var(--text)'};
       chip.onmouseleave=()=>{chip.style.background='var(--surface2)';chip.style.color='var(--text2)'};
@@ -5906,7 +5951,8 @@ function exportAllData(){
 
 function clearAllData(){
   if(!confirm('Delete ALL local data? This cannot be undone.'))return;
-  ['embr_settings','embr_bookmarks','embr_pins','embr_tokens','cipher_notes','cipher_notes_expanded','cipher_notes_exported_at','cipher_recent'].forEach(k=>localStorage.removeItem(k));
+  ['embr_settings','embr_bookmarks','embr_pins','embr_tokens','cipher_notes','cipher_notes_expanded','cipher_notes_exported_at','cipher_recent','embr_last_note_id','embr_tags','embr_networks','embr_pinboard','embr_saved_abis','embr_tx','embr_sb_collapsed','embr_gist_id','embr_last_sync_time','cipher_nets'].forEach(k=>localStorage.removeItem(k));
+  ['embr_gh_token','embr_sync_pass'].forEach(k=>sessionStorage.removeItem(k));
   toast('All data cleared','ok');location.reload();
 }
 
@@ -5976,7 +6022,7 @@ function tOut(lines){
   const out=document.getElementById('term-output');
   lines.forEach(l=>{
     const div=document.createElement('div');div.className='term-line';
-    div.innerHTML=`<span class="t-pr">→</span><span class="${l.c||'t-txt'}">${l.t}</span>`;
+    div.innerHTML=`<span class="t-pr">→</span><span class="${l.c||'t-txt'}">${_h(l.t)}</span>`;
     out.appendChild(div);
   });
   out.scrollTop=out.scrollHeight;
@@ -5992,7 +6038,7 @@ function termKey(e){
     // Echo
     const out=document.getElementById('term-output');
     const div=document.createElement('div');div.className='term-line';
-    div.innerHTML=`<span class="t-pr" style="color:var(--text3)">$</span><span class="t-txt">${raw}</span>`;
+    div.innerHTML=`<span class="t-pr" style="color:var(--text3)">$</span><span class="t-txt">${_h(raw)}</span>`;
     out.appendChild(div);
     input.value='';
     termRun(raw);
@@ -6015,18 +6061,18 @@ function termRun(raw){
   
   if(cmd==='go'){
     const tab=args[0];
-    if(['home','interact','deploy','tools','networks','notes','settings'].includes(tab)){showTab(tab);tLine('Navigated to '+tab,'t-ok');}
-    else tLine('Unknown tab: '+tab+'. Try: home|interact|deploy|tools|networks|notes|settings','t-err');
+    if(['home','interact','deploy','tools','networks','notes','settings'].includes(tab)){showTab(tab);tLine('term-out','Navigated to '+tab,'t-ok');}
+    else tLine('term-out','Unknown tab: '+tab+'. Try: home|interact|deploy|tools|networks|notes|settings','t-err');
     return;
   }
   if (cmd === 'push' || cmd === 'sync push') {
     pushWorkspaceToGist();
-    tLine('Pushed to cloud');
+    tLine('term-out','Pushing to cloud…','t-info');
     return;
   }
   if (cmd === 'pull' || cmd === 'sync pull') {
     pullWorkspaceFromGist();
-    tLine('Pulled from cloud');
+    tLine('term-out','Pulling from cloud…','t-info');
     return;
   }
   if(cmd==='connect'){
@@ -6191,21 +6237,21 @@ function renderFns(cid,fns,isWrite){
   if(!fns.length){c.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">No functions.</div>';return;}
   fns.forEach((fn,i)=>{
     const id=cid+'_'+i;
-    const inps=(fn.inputs||[]).map((inp,j)=>`<div style="margin-bottom:8px"><div class="fn-param-label">${inp.name||'param'+j}  <span style="color:var(--text3)">${inp.type}</span></div><input id="${id}_a${j}" placeholder="${inp.type}" style="font-size:12px;"/></div>`).join('');
+    const inps=(fn.inputs||[]).map((inp,j)=>`<div style="margin-bottom:8px"><div class="fn-param-label">${_h(inp.name||'param'+j)}  <span style="color:var(--text3)">${_h(inp.type)}</span></div><input id="${id}_a${j}" placeholder="${_h(inp.type)}" style="font-size:12px;"/></div>`).join('');
     const pay=fn.stateMutability==='payable'?`<div style="margin-bottom:8px"><div class="fn-param-label">value  <span style="color:var(--text3)">ETH</span></div><input id="${id}_val" placeholder="0.0"/></div>`:'';
-    const outs=(fn.outputs||[]).map(o=>o.type).join(', ');
+    const outs=(fn.outputs||[]).map(o=>_h(o.type)).join(', ');
     const chipClass=isWrite?(fn.stateMutability==='payable'?'chip-pay':'chip-write'):'chip-view';
-    const sm=fn.stateMutability||'—';
-    c.insertAdjacentHTML('beforeend',`<div class="toggle-block" id="${id}">
+    const sm=_h(fn.stateMutability||'—');
+    c.insertAdjacentHTML('beforeend',`<div class="toggle-block" id="${id}" data-fn="${_h(fn.name)}">
       <div class="toggle-header" onclick="tFn('${id}')">
         <span class="toggle-arrow"><svg viewBox="0 0 10 10" fill="none"><path d="M3 2l4 3-4 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span style="font-family:var(--mono);font-size:13px">${fn.name}</span>
+        <span style="font-family:var(--mono);font-size:13px">${_h(fn.name)}</span>
         ${outs?`<span style="font-size:11px;color:var(--text3);margin-left:6px">→ ${outs}</span>`:''}
         <span class="fn-type-chip ${chipClass}">${sm}</span>
       </div>
       <div class="toggle-content">${inps}${pay}
         <div class="btn-row" style="margin-bottom:10px">
-          <button class="btn ${isWrite?'btn-primary':'btn-secondary'} btn-sm" onclick="${isWrite?'cWrite':'cRead'}('${fn.name}','${id}',${(fn.inputs||[]).length},${fn.stateMutability==='payable'})">${isWrite?'Write':'Read'}</button>
+          <button class="btn ${isWrite?'btn-primary':'btn-secondary'} btn-sm" onclick="${isWrite?'cWrite':'cRead'}('${_esc(fn.name)}','${id}',${(fn.inputs||[]).length},${fn.stateMutability==='payable'})">${isWrite?'Write':'Read'}</button>
         </div>
         <div class="fn-result" id="${id}_r">—</div>
       </div>
@@ -6281,7 +6327,7 @@ function notesLinkPage(pageId){
   ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);';
   const modal=document.createElement('div');
   modal.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border2);border-radius:var(--r3);box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:9999;width:320px;max-width:90vw;overflow:hidden;display:flex;flex-direction:column;max-height:400px;';
-  modal.innerHTML=`<div style="padding:14px 16px 10px;font-size:14px;font-weight:600;color:var(--text);border-bottom:1px solid var(--divider);flex-shrink:0">Link a page under "${page.title||'Untitled'}"</div>`;
+  modal.innerHTML=`<div style="padding:14px 16px 10px;font-size:14px;font-weight:600;color:var(--text);border-bottom:1px solid var(--divider);flex-shrink:0">Link a page under &ldquo;${_h(page.title||'Untitled')}&rdquo;</div>`;
   const inp=document.createElement('input');
   inp.style.cssText='margin:10px 12px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-size:13px;outline:none;';
   inp.placeholder='Search pages...';
@@ -6293,7 +6339,7 @@ function notesLinkPage(pageId){
     others.filter(p=>(p.title||'').toLowerCase().includes(q.toLowerCase())).forEach(p=>{
       const r=document.createElement('div');
       r.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r2);cursor:pointer;font-size:13px;color:var(--text2);transition:background .1s;';
-      r.innerHTML=(p.icon||'📄')+' '+(p.title||'Untitled');
+      r.innerHTML=_h(p.icon||'📄')+' '+_h(p.title||'Untitled');
       r.onmouseenter=()=>r.style.background='var(--hover)';r.onmouseleave=()=>r.style.background='';
       r.onclick=()=>{p.parentId=pageId;notesSave();renderPageTree();renderNotesMain();close();toast('Linked','ok');};
       list.appendChild(r);
@@ -6574,7 +6620,7 @@ function applyMention(page, editor) {
   pill.className = 'mention-link';
   pill.contentEditable = 'false'; // IMPORTANT: Prevents cursor getting trapped inside
   pill.dataset.pageId = page.id;
-  pill.innerHTML = `${page.icon || '📄'} ${page.title || 'Untitled'}`;
+  pill.innerHTML = `${_h(page.icon || '📄')} ${_h(page.title || 'Untitled')}`;
   
   // 3. Insert the pill and a trailing space so the user can keep typing
   sel.getRangeAt(0).insertNode(pill);
@@ -6616,20 +6662,28 @@ document.addEventListener('click', e => {
 
 /* ── GITHUB GIST WORKSPACE SYNC ── */
 
-// Save token and ID locally so they don't have to re-enter it
+// PAT and password use sessionStorage (cleared on tab close); only Gist ID persists in localStorage
 function saveSyncSettings() {
-  localStorage.setItem('embr_gh_token', document.getElementById('sync-gh-token').value.trim());
+  const token = document.getElementById('sync-gh-token').value.trim();
+  if (token) sessionStorage.setItem('embr_gh_token', token);
+  else sessionStorage.removeItem('embr_gh_token');
   localStorage.setItem('embr_gist_id', document.getElementById('sync-gist-id').value.trim());
+  const pass = document.getElementById('sync-enc-pass').value;
+  if (pass) sessionStorage.setItem('embr_sync_pass', pass);
+  else sessionStorage.removeItem('embr_sync_pass');
 }
 
-// Load token and ID on startup
+// Load on startup — PAT/password from session, Gist ID from localStorage
 function loadSyncSettings() {
-  const token = localStorage.getItem('embr_gh_token');
+  const token  = sessionStorage.getItem('embr_gh_token');
   const gistId = localStorage.getItem('embr_gist_id');
-  if (token) document.getElementById('sync-gh-token').value = token;
-  if (gistId) document.getElementById('sync-gist-id').value = gistId;
+  const pass   = sessionStorage.getItem('embr_sync_pass');
+  if (token)  document.getElementById('sync-gh-token').value = token;
+  if (gistId) document.getElementById('sync-gist-id').value  = gistId;
+  if (pass)   document.getElementById('sync-enc-pass').value = pass;
+  // Show FAB immediately if sync is already configured
+  if (token && gistId) document.body.classList.add('mob-sync-active');
 }
-// Add loadSyncSettings() to your general initialization/startup function!
 
 function setSyncStatus(msg, isError = false) {
   const el = document.getElementById('sync-status');
@@ -6637,6 +6691,51 @@ function setSyncStatus(msg, isError = false) {
   el.style.color = isError ? '#ef4444' : '#10b981';
   el.textContent = msg;
   setTimeout(() => el.style.display = 'none', 5000);
+}
+
+/* ── AES-256-GCM ENCRYPTION HELPERS ── */
+// Derives a 256-bit AES-GCM key from a password using PBKDF2 (100k iterations, SHA-256)
+async function _syncCryptoKey(password, salt) {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// Returns "ENC:v1:<base64(salt[16]+iv[12]+ciphertext)>"
+async function encryptWorkspace(plaintext, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await _syncCryptoKey(password, salt);
+  const cipherBuf = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext)
+  );
+  const combined = new Uint8Array(16 + 12 + cipherBuf.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, 16);
+  combined.set(new Uint8Array(cipherBuf), 28);
+  return 'ENC:v1:' + btoa(String.fromCharCode(...combined));
+}
+
+// Returns original plaintext, or throws on wrong password / bad data
+async function decryptWorkspace(data, password) {
+  if (!data.startsWith('ENC:v1:')) throw new Error('Backup is not encrypted — no password needed to pull.');
+  const bytes = Uint8Array.from(atob(data.slice(7)), c => c.charCodeAt(0));
+  const key = await _syncCryptoKey(password, bytes.slice(0, 16));
+  try {
+    const dec = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: bytes.slice(16, 28) }, key, bytes.slice(28)
+    );
+    return new TextDecoder().decode(dec);
+  } catch {
+    throw new Error('Wrong password or corrupted backup. Cannot decrypt.');
+  }
 }
 
 // 1. PUSH: Gather localStorage and send to GitHub
@@ -6647,6 +6746,8 @@ async function pushWorkspaceToGist() {
   if (!token) return setSyncStatus("Error: GitHub Token required.", true);
   
   setSyncStatus("Gathering workspace data...");
+
+  const password = document.getElementById('sync-enc-pass').value;
 
   // Grab all the critical data from your app
   const workspaceState = {
@@ -6661,12 +6762,22 @@ async function pushWorkspaceToGist() {
     abis: localStorage.getItem('embr_saved_abis') || '[]'
   };
 
+  const plaintext = JSON.stringify(workspaceState, null, 2);
+  let fileContent;
+
+  if (password) {
+    setSyncStatus("Encrypting workspace…");
+    fileContent = await encryptWorkspace(plaintext, password);
+  } else {
+    fileContent = plaintext;
+  }
+
   const payload = {
     description: "Embr_Workspace_Backup_v1",
-    public: false, // EXTREMELY IMPORTANT: Keeps notes private
+    public: false,
     files: {
       "embr-workspace.json": {
-        content: JSON.stringify(workspaceState, null, 2)
+        content: fileContent
       }
     }
   };
@@ -6731,8 +6842,17 @@ async function pullWorkspaceFromGist() {
     const file = data.files['embr-workspace.json'];
     
     if (!file) throw new Error("Invalid Gist format. Cannot find embr-workspace.json");
-    
-    const workspaceState = JSON.parse(file.content);
+
+    const password = document.getElementById('sync-enc-pass').value;
+    let rawContent = file.content;
+
+    if (rawContent.startsWith('ENC:v1:')) {
+      if (!password) return setSyncStatus("Error: This backup is encrypted. Enter your Encryption Password and try again.", true);
+      setSyncStatus("Decrypting workspace…");
+      rawContent = await decryptWorkspace(rawContent, password);
+    }
+
+    const workspaceState = JSON.parse(rawContent);
 
     // Carefully overwrite localStorage
     if (workspaceState.notes) localStorage.setItem('cipher_notes', workspaceState.notes);
@@ -6747,7 +6867,8 @@ async function pullWorkspaceFromGist() {
 
     setSyncStatus("✅ Workspace loaded! Refreshing app...");
     localStorage.setItem('embr_last_sync_time', Date.now());
-    
+    _applySyncState(false); // clear "Updates Available" badge
+
     // Force a hard reload so the UI updates with the new data
     setTimeout(() => window.location.reload(), 1000);
 
@@ -6757,26 +6878,31 @@ async function pullWorkspaceFromGist() {
   }
 }
 
-// 3. AUTO-FIND: Scans GitHub for an existing Embr Gist
+// 3. AUTO-FIND: Scans all GitHub gists (paginated) for an existing Embr backup
 async function findExistingGist() {
   const token = document.getElementById('sync-gh-token').value.trim();
   if (!token) return setSyncStatus("Please enter your GitHub PAT first.", true);
 
   try {
     setSyncStatus("Searching your GitHub for existing Embr backups...");
-    const res = await fetch('https://api.github.com/gists', {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'Authorization': `token ${token}`
-      }
-    });
+    let page = 1;
+    let embrGist = null;
 
-    if (!res.ok) throw new Error("Failed to search Gists. Check your PAT.");
-    const gists = await res.json();
-    
-    // Look for our specific unique identifier!
-    const embrGist = gists.find(g => g.description === "Embr_Workspace_Backup_v1");
-    
+    while (!embrGist) {
+      const res = await fetch(`https://api.github.com/gists?per_page=100&page=${page}`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `token ${token}`
+        }
+      });
+      if (!res.ok) throw new Error("Failed to search Gists. Check your PAT.");
+      const gists = await res.json();
+      if (!gists.length) break; // no more pages
+      embrGist = gists.find(g => g.description === "Embr_Workspace_Backup_v1");
+      if (gists.length < 100) break; // last page
+      page++;
+    }
+
     if (embrGist) {
       document.getElementById('sync-gist-id').value = embrGist.id;
       saveSyncSettings();
@@ -6800,13 +6926,49 @@ function showMobileToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
+// Called by both the footer "Synced" button and the mobile FAB
+async function quickPullSync() {
+  const token   = sessionStorage.getItem('embr_gh_token');
+  const gistId  = localStorage.getItem('embr_gist_id');
+  if (!token || !gistId) {
+    openSyncSettings();
+    return;
+  }
+  const fab = document.getElementById('mob-sync-fab');
+  if (fab) fab.classList.add('spinning');
+  await pullWorkspaceFromGist();
+  if (fab) fab.classList.remove('spinning');
+}
+
+// Updates the footer label, footer onclick, and the mobile FAB state
+function _applySyncState(hasUpdates) {
+  const footerText   = document.getElementById('footer-sync-text');
+  const footerStatus = document.getElementById('footer-sync-status');
+  const fab          = document.getElementById('mob-sync-fab');
+
+  if (hasUpdates) {
+    footerText.textContent = "Updates Available";
+    footerStatus.style.color      = "#f59e0b";
+    footerStatus.style.background = "rgba(245,158,11,.1)";
+    if (fab) fab.classList.add('has-updates');
+  } else {
+    footerText.textContent = "Synced";
+    footerStatus.style.color      = "inherit";
+    footerStatus.style.background = "transparent";
+    if (fab) fab.classList.remove('has-updates');
+  }
+}
+
 /* ── CHECK FOR CLOUD UPDATES ON BOOT ── */
 async function checkForCloudUpdates() {
-  const token = localStorage.getItem('embr_gh_token');
-  const gistId = localStorage.getItem('embr_gist_id');
+  const token   = sessionStorage.getItem('embr_gh_token');
+  const gistId  = localStorage.getItem('embr_gist_id');
   const lastSync = parseInt(localStorage.getItem('embr_last_sync_time') || '0', 10);
-  
-  if (!token || !gistId) return; // Not set up yet
+
+  if (!token || !gistId) return;
+
+  // Sync is configured — show mobile FAB
+  document.body.classList.add('mob-sync-active');
 
   try {
     const res = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -6818,29 +6980,9 @@ async function checkForCloudUpdates() {
 
     if (!res.ok) return;
     const data = await res.json();
-    
-    // Convert GitHub's ISO timestamp to milliseconds
+
     const cloudTimestamp = new Date(data.updated_at).getTime();
-
-    const footerText = document.getElementById('footer-sync-text');
-    const footerStatus = document.getElementById('footer-sync-status');
-
-    if (cloudTimestamp > lastSync + 5000) { 
-      // Cloud is newer! (5s buffer for clock drift)
-      footerText.textContent = "Updates Available";
-      footerStatus.style.color = "#f59e0b"; // Orange alert color
-      footerStatus.style.background = "rgba(245, 158, 11, 0.1)";
-      
-      // Override the click to instantly pull instead of opening settings
-      footerStatus.onclick = () => {
-        pullWorkspaceFromGist();
-        footerText.textContent = "Synced";
-        footerStatus.style.color = "inherit";
-        footerStatus.style.background = "transparent";
-      };
-    } else {
-      footerText.textContent = "Synced";
-    }
+    _applySyncState(cloudTimestamp > lastSync + 5000);
   } catch (err) {
     console.warn("Could not check cloud status:", err);
   }
