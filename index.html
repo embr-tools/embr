@@ -330,6 +330,46 @@ html,body{height:100%;overflow:hidden;background:var(--page);color:var(--text);f
 .addr-pill.spam { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
 .addr-pill.spam:hover { background: rgba(239, 68, 68, 0.2); }
 
+/* ── Name Tag Hint Tooltip ── */
+#tag-hint {
+  position: fixed;
+  z-index: 9200;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 10px 13px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 210px;
+  max-width: 320px;
+  font-family: var(--ui);
+  pointer-events: all;
+}
+#tag-hint.open { display: flex; }
+.tag-hint-label {
+  font-size: 12px; color: var(--text3); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.tag-hint-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.tag-hint-val {
+  font-size: 12px; color: var(--text3); font-family: var(--mono);
+  word-break: break-all; max-height: 48px; overflow: hidden;
+}
+.tag-hint-row { display: flex; gap: 6px; margin-top: 6px; }
+.tag-hint-btn {
+  flex: 1; padding: 5px 0; border-radius: 6px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text2); font-size: 12px; font-family: var(--ui);
+  cursor: pointer; transition: background .12s, color .12s;
+}
+.tag-hint-btn:hover { background: var(--hover); color: var(--text); }
+.tag-hint-btn.primary {
+  background: var(--accent-softer, rgba(16,185,129,.12));
+  color: var(--accent); border-color: rgba(16,185,129,.25);
+}
+.tag-hint-btn.primary:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
   /* ── Sidebar overlay ── */
   .sidebar {
     position: fixed !important;
@@ -1064,10 +1104,14 @@ select{cursor:pointer;font-family:var(--ui);}
 .card-modal-mask.open{opacity:1;pointer-events:all;}
 .card-modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r3);width:540px;max-width:calc(100vw - 40px);max-height:80vh;display:flex;flex-direction:column;transform:scale(.96) translateY(8px);opacity:0;transition:all .2s var(--ease);}
 .card-modal-mask.open .card-modal{transform:scale(1) translateY(0);opacity:1;}
+.card-modal.cm-expanded{width:calc(100vw - 48px);max-width:960px;height:calc(100vh - 48px);max-height:calc(100vh - 48px);border-radius:var(--r3);}
 .cm-head{padding:16px 20px 12px;border-bottom:1px solid var(--divider);display:flex;align-items:flex-start;gap:10px;}
 .cm-icon{font-size:24px;cursor:pointer;flex-shrink:0;}
 .cm-title{flex:1;font-size:18px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;font-family:var(--ui);}
 .cm-title::placeholder{color:var(--text3);}
+.cm-head-actions{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.cm-expand{width:26px;height:26px;border-radius:var(--r);border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;}
+.cm-expand:hover{background:var(--hover);color:var(--text);}
 .cm-close{width:26px;height:26px;border-radius:var(--r);border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .cm-close:hover{background:var(--hover);color:var(--text);}
 .cm-props{display:flex;flex-direction:column;border-bottom:1px solid var(--divider);}
@@ -1076,10 +1120,12 @@ select{cursor:pointer;font-family:var(--ui);}
 .cm-prop-label{width:100px;flex-shrink:0;padding:7px 12px;font-size:12px;color:var(--text3);}
 .cm-prop-value{flex:1;padding:7px 12px;font-size:12px;cursor:pointer;position:relative;}
 .cm-prop-value:hover{background:var(--hover);}
-.cm-body{flex:1;overflow-y:auto;}
-.cm-editor{padding:14px 20px;outline:none;font-size:13px;line-height:1.75;color:var(--text);min-height:120px;}
-.cm-editor:empty::before{content:"Add description…";color:var(--text3);pointer-events:none;}
-.cm-footer{padding:10px 20px;border-top:1px solid var(--divider);display:flex;gap:7px;justify-content:flex-end;}
+.cm-body{flex:1;min-height:0;display:flex;flex-direction:column;}
+.cm-yoopta{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.cm-footer{padding:10px 20px;border-top:1px solid var(--divider);display:flex;gap:7px;justify-content:flex-end;flex-shrink:0;}
+/* Yoopta inside card modal */
+.cm-yoopta .yoopta-editor{padding:14px 20px 60px !important;font-size:14px !important;}
+.cm-yoopta .bn-loader{min-height:120px;}
 
 /* ── ICON PICKER ── */
 .icon-picker{position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r3);box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:9999;padding:10px;width:280px;}
@@ -1729,6 +1775,176 @@ select{cursor:pointer;font-family:var(--ui);}
 .tc-change{font-size:11px;font-family:var(--mono);display:flex;align-items:center;gap:3px;}
 .tc-change.up{color:var(--accent);}
 .tc-change.down{color:var(--red);}
+
+/* ── YOOPTA EDITOR — EMBR THEME ── */
+.bn-embr-container { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Editor canvas ── */
+.bn-embr-container .yoopta-editor {
+  padding: 32px 40px 100px !important;
+  font-family: var(--ui) !important;
+  font-size: 16px !important;
+  color: var(--text) !important;
+  background: transparent !important;
+  min-height: 100%;
+}
+@media (max-width:768px) {
+  .bn-embr-container .yoopta-editor { padding: 16px 18px 80px !important; }
+}
+
+/* ── Text + block colours ── */
+.yoopta-paragraph       { color: var(--text) !important; }
+.yoopta-heading-one     { color: var(--text) !important; font-size: 2rem !important;   font-weight: 700 !important; letter-spacing: -.03em !important; }
+.yoopta-heading-two     { color: var(--text) !important; font-size: 1.5rem !important; font-weight: 600 !important; letter-spacing: -.02em !important; }
+.yoopta-heading-three   { color: var(--text) !important; font-size: 1.2rem !important; font-weight: 600 !important; }
+.yoopta-numbered-list,
+.yoopta-bulleted-list,
+.yoopta-todo-list-content { color: var(--text) !important; }
+
+/* ── Text selection highlight ── */
+::selection       { background: rgba(16,185,129,.28) !important; }
+::-moz-selection  { background: rgba(16,185,129,.28) !important; }
+.yoopta-editor *  { scrollbar-color: rgba(255,255,255,.1) transparent !important; }
+
+/* ── Placeholder ── */
+.yoopta-placeholder::after { color: var(--text3) !important; opacity: 1 !important; }
+
+/* ── Block action buttons (drag / +) ── */
+.yoopta-block-actions-plus,
+.yoopta-block-actions-drag { color: var(--text3) !important; }
+.yoopta-block-actions-plus:hover,
+.yoopta-block-actions-drag:hover { background-color: var(--hover) !important; color: var(--text2) !important; }
+
+/* ── Block options context menu ── */
+.yoo-editor-z-\[100\] { z-index: 9992 !important; }
+.yoopta-block-options-menu-content {
+  background-color: var(--surface2) !important;
+  border-color: var(--border2) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
+  color: var(--text) !important;
+}
+.yoopta-block-options-button { color: var(--text2) !important; font-family: var(--ui) !important; font-size: 13px !important; }
+.yoopta-block-options-button:hover { background-color: var(--hover) !important; color: var(--text) !important; }
+.yoopta-block-options-separator { background-color: var(--divider) !important; }
+.yoopta-extended-block-actions { background-color: var(--surface3) !important; }
+
+/* ── Floating selection toolbar ── */
+.yoopta-toolbar-root {
+  background-color: var(--surface2) !important;
+  border-color: var(--border2) !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,.55) !important;
+  font-family: var(--ui) !important;
+  z-index: 9990 !important;
+}
+/* lift the floating-ui wrappers */
+[class*="yoo-toolbar-z-"] { z-index: 9990 !important; }
+.yoopta-toolbar-item,
+.yoopta-toolbar-item-mark { color: var(--text2) !important; font-family: var(--ui) !important; }
+.yoopta-toolbar-item:hover,
+.yoopta-toolbar-item-mark:hover { background-color: var(--hover) !important; color: var(--text) !important; }
+.yoopta-toolbar-item[data-state="on"],
+.yoopta-toolbar-item-mark[data-state="on"] { color: var(--accent) !important; background-color: var(--accent-softer) !important; }
+.yoopta-toolbar-separator { background-color: var(--border2) !important; }
+/* Any white/light bg inside toolbar — catches color-picker panel and all sub-panels */
+.yoopta-toolbar-root [class*="yoo-toolbar-bg-"],
+.yoopta-toolbar-root [class*="yoo-toolbar-border-"] { background-color: var(--surface3) !important; border-color: var(--border) !important; }
+/* Toolbar text overrides */
+.yoopta-toolbar-root [class*="yoo-toolbar-text-gray"] { color: var(--text2) !important; }
+.yoopta-toolbar-root [class*="yoo-toolbar-text-blue"],
+.yoopta-toolbar-root [class*="yoo-toolbar-bg-blue"] { color: var(--accent) !important; background-color: var(--accent-softer) !important; }
+.yoopta-toolbar-root [class*="yoo-toolbar-bg-gray"]:hover { background-color: var(--hover) !important; }
+.yoopta-toolbar-root [class*="yoo-toolbar-border-"] { border-color: var(--border) !important; }
+
+/* ── Slash / command menu ── */
+.yoopta-action-menu-list-content {
+  background-color: var(--surface2) !important;
+  border-color: var(--border2) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
+  font-family: var(--ui) !important;
+  padding: 4px !important;
+  color: var(--text2) !important;
+}
+/* All text inside action menu */
+.yoopta-action-menu-list-content .yoopta-button { color: var(--text2) !important; font-size: 13px !important; }
+.yoopta-action-menu-list-content [class*="yoo-action-menu-text-"] { color: var(--text3) !important; }
+/* Icon box background and border (white square next to each command) */
+.yoopta-action-menu-list-content [class*="yoo-action-menu-bg-"] { background-color: var(--surface3) !important; }
+.yoopta-action-menu-list-content [class*="yoo-action-menu-border-"] { border-color: var(--border) !important; }
+/* Hover and selected states */
+.yoopta-action-menu-list-content .yoopta-button:hover { background-color: var(--hover) !important; color: var(--text) !important; }
+.yoopta-action-menu-list-content .yoopta-button[aria-selected="true"],
+.yoopta-action-menu-list-content .yoopta-button[aria-selected=true] { background-color: var(--surface3) !important; color: var(--text) !important; }
+
+/* ── Inline code mark ── */
+.yoopta-mark-code {
+  background-color: var(--surface3) !important;
+  color: var(--accent) !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+  font-family: var(--mono) !important;
+  font-size: 85% !important;
+}
+
+/* ── Blockquote ── */
+.yoopta-blockquote {
+  border-left-color: var(--accent) !important;
+  border-left-width: 3px !important;
+  color: var(--text2) !important;
+}
+
+/* ── Callout ── */
+.yoopta-callout {
+  background-color: var(--surface2) !important;
+  border: 1px solid var(--divider) !important;
+}
+
+/* ── Links ── */
+.yoopta-link         { color: var(--accent) !important; }
+.yoopta-link:hover   { color: var(--accent-hover) !important; }
+.yoopta-link-preview {
+  background-color: var(--surface2) !important;
+  border-color: var(--border2) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5) !important;
+  color: var(--text) !important;
+}
+.yoopta-link-preview input {
+  background: var(--surface3) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  border-radius: 5px !important;
+}
+
+/* ── Todo checkbox ── */
+.yoopta-todo-list-checkbox--checked { background-color: var(--accent) !important; border-color: var(--accent) !important; }
+.yoopta-todo-list-checkbox--checked:hover { background-color: var(--accent-hover) !important; border-color: var(--accent-hover) !important; }
+.yoopta-todo-list-checkbox--unchecked { border-color: var(--border2) !important; }
+.yoopta-todo-list-content--checked { opacity: .5; text-decoration: line-through; }
+
+/* ── Name Tag action menu item ── */
+.yoopta-name-tag-title { color: var(--text2) !important; }
+.yoopta-name-tag-desc  { color: var(--text3) !important; }
+[data-name-tag-btn]:hover .yoopta-name-tag-title { color: var(--text) !important; }
+[data-name-tag-btn]:hover .yoopta-name-tag-desc  { color: var(--text2) !important; }
+
+/* ── Loading / retry states ── */
+.bn-loader {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; gap: 12px; color: var(--text3);
+}
+.bn-loader-spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border2); border-top-color: var(--accent);
+  animation: bn-spin .7s linear infinite;
+}
+@keyframes bn-spin { to { transform: rotate(360deg); } }
+.bn-loader-retry {
+  margin-top: 4px; padding: 6px 16px; border-radius: 6px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text2); font-size: 13px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.bn-loader-retry:hover { background: var(--hover); color: var(--text); }
 
 </style>
 </head>
@@ -2563,7 +2779,10 @@ contract MyContract { }"></textarea>
     <div class="cm-head">
       <span class="cm-icon" id="cm-icon" onclick="openIconPicker(this,'cm-icon-val')">📝</span>
       <input class="cm-title" id="cm-title" placeholder="Task title…"/>
-      <button class="cm-close" onclick="closeCardModal()">×</button>
+      <div class="cm-head-actions">
+        <button class="cm-expand" id="cm-expand-btn" onclick="toggleCardExpand()" title="Expand">⤢</button>
+        <button class="cm-close" onclick="closeCardModal()">×</button>
+      </div>
     </div>
     <div class="cm-props">
       <div class="cm-prop">
@@ -2584,12 +2803,11 @@ contract MyContract { }"></textarea>
       </div>
     </div>
     <div class="cm-body">
-      <div class="cm-editor" id="cm-editor" contenteditable="true" placeholder="Add description or notes…"></div>
+      <div class="cm-yoopta" id="cm-yoopta"></div>
     </div>
     <div class="cm-footer">
       <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCurrentCard()">Delete</button>
-      <button class="btn btn-secondary btn-sm" onclick="closeCardModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveCardModal()">Save</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeCardModal()">Close</button>
     </div>
   </div>
 </div>
@@ -4549,6 +4767,7 @@ function renderNotesMain(){
   }
   
   if(empty) empty.style.display='none';
+  if (window._BN) window._BN.unmountAll(); // tear down any active BlockNote instance
   main.querySelectorAll('.notes-page-view').forEach(el=>el.remove());
   const page = _notes.pages.find(p=>p.id===_curPageId);
   if(!page) return;
@@ -4683,13 +4902,11 @@ document.addEventListener('selectionchange', () => {
     return;
   }
   
-  // Check if we are inside the main doc OR the card modal editor
-  const docEditor = document.querySelector('.doc-editor');
+  // Only show for the card modal editor — BlockNote provides its own formatting toolbar
   const cardEditor = document.getElementById('cm-editor');
-  const inDoc = docEditor && docEditor.contains(sel.anchorNode);
   const inCard = cardEditor && cardEditor.contains(sel.anchorNode);
-  
-  if (!inDoc && !inCard) {
+
+  if (!inCard) {
     ft.classList.remove('active');
     return;
   }
@@ -4702,103 +4919,68 @@ document.addEventListener('selectionchange', () => {
   ft.classList.add('active');
 });
 
-/* ── DOC VIEW WITH STICKY NOTION TOOLBAR ── */
-function buildDocView(page){
+/* ── DOC VIEW — Yoopta rich-text editor ── */
+let _bnScriptInjected = false;
+function _injectBNScript() {
+  if (_bnScriptInjected || window._BN) return;
+  _bnScriptInjected = true;
+  const s = document.createElement('script');
+  s.src = 'libs/yoopta.bundle.js';
+  s.async = true;
+  document.body.appendChild(s);
+}
+
+function buildDocView(page) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'flex:1; display:flex; flex-direction:column; align-items:center; position:relative;';
 
-  const inner = document.createElement('div');
-  inner.style.cssText = 'width:100%; max-width:800px; display:flex; flex-direction:column; flex:1; position:relative;';
+  const container = document.createElement('div');
+  container.className = 'bn-embr-container';
+  container.style.cssText = 'width:100%; max-width:800px; flex:1; display:flex; flex-direction:column; min-height:0;';
 
-  // 1. Build the Sticky Formatting Bar
-  const tb = document.createElement('div');
-  tb.className = 'notion-toolbar';
-  
-  const addBtn = (icon, title, cmd, val=false) => {
-    const b = document.createElement('button');
-    b.className = 'notion-tb-btn';
-    b.innerHTML = icon;
-    b.title = title;
-    b.onmousedown = (e) => { 
-      e.preventDefault(); 
-      document.execCommand(cmd, false, val); 
+  wrap.appendChild(container);
+
+  // Show a loading spinner while the BlockNote module initialises
+  const loader = document.createElement('div');
+  loader.className = 'bn-loader';
+  loader.innerHTML = '<div class="bn-loader-spinner"></div><span style="font-size:13px">Loading editor…</span>';
+  container.appendChild(loader);
+
+  _injectBNScript();
+
+  requestAnimationFrame(() => {
+    const doMount = () => {
+      loader.remove();
+      window._BN.mount(container, page.content, (jsonStr) => {
+        page.content = jsonStr;
+        page.updatedAt = Date.now();
+        notesSave();
+      });
     };
-    tb.appendChild(b);
-  };
-  const addSep = () => { 
-    const s = document.createElement('div'); 
-    s.className = 'notion-tb-sep'; 
-    tb.appendChild(s); 
-  };
 
-  // Text Styles
-  addBtn('<b>B</b>', 'Bold', 'bold');
-  addBtn('<i>I</i>', 'Italic', 'italic');
-  addBtn('<u>U</u>', 'Underline', 'underline');
-  addBtn('<s>S</s>', 'Strikethrough', 'strikeThrough');
-  addSep();
-  
-  // Blocks
-  addBtn('H1', 'Heading 1', 'formatBlock', 'h1');
-  addBtn('H2', 'Heading 2', 'formatBlock', 'h2');
-  addBtn('H3', 'Heading 3', 'formatBlock', 'h3');
-  addSep();
-  
-  // Lists
-  addBtn('•', 'Bullet List', 'insertUnorderedList');
-  addBtn('1.', 'Numbered List', 'insertOrderedList');
-  addBtn('❝', 'Quote', 'formatBlock', 'blockquote');
-  addSep();
+    const showRetry = () => {
+      loader.innerHTML =
+        '<span style="font-size:13px">Editor failed to load.</span>' +
+        '<button class="bn-loader-retry" onclick="this.closest(\'.bn-embr-container\')._retryMount()">Retry</button>';
+      container._retryMount = () => {
+        loader.innerHTML = '<div class="bn-loader-spinner"></div><span style="font-size:13px">Loading editor…</span>';
+        container.appendChild(loader);
+        startWait();
+      };
+    };
 
-  // Code Block
-  const codeBtn = document.createElement('button');
-  codeBtn.className = 'notion-tb-btn'; 
-  codeBtn.innerHTML = '<>'; 
-  codeBtn.title = 'Code Block';
-  codeBtn.onmousedown = (e) => { 
-    e.preventDefault(); 
-    document.execCommand('formatBlock', false, 'pre'); 
-  };
-  tb.appendChild(codeBtn);
+    const startWait = () => {
+      if (window._BN) { doMount(); return; }
+      let attempts = 0;
+      const iv = setInterval(() => {
+        if (window._BN) { clearInterval(iv); doMount(); }
+        else if (++attempts > 30) { clearInterval(iv); showRetry(); }
+      }, 100);
+    };
 
-  // Todo Checkbox
-  const checkBtn = document.createElement('button');
-  checkBtn.className = 'notion-tb-btn'; 
-  checkBtn.innerHTML = '☑'; 
-  checkBtn.title = 'To-do';
-  checkBtn.onmousedown = (e) => { 
-    e.preventDefault(); 
-    const s = window.getSelection(); 
-    if(s && s.rangeCount) insertTodo(s.getRangeAt(0).startContainer); 
-  };
-  tb.appendChild(checkBtn);
-
-  // 2. Build the Editor
-  const editor = document.createElement('div');
-  editor.className = 'doc-editor';
-  editor.id = 'doc-editor';
-  editor.contentEditable = 'true';
-  editor.setAttribute('placeholder','Press / for commands, or type # for headings...');
-  editor.innerHTML = page.content || '<div><br></div>';
-
-  editor.addEventListener('input', () => {
-    page.content = editor.innerHTML;
-    page.updatedAt = Date.now();
-    notesSave();
+    startWait();
   });
 
-  editor.addEventListener('keyup', e => {
-    checkSlashMenu(e, editor);
-    checkMentionMenu(e, editor); // <-- Add this line
-  });
-  
-  editor.addEventListener('keydown', e => docEditorKey(e, editor, page));
-  
-  inner.appendChild(tb);
-  inner.appendChild(editor);
-  wrap.appendChild(inner);
-  setTimeout(()=>setupBlockHandles(editor),50);
-  
   return wrap;
 }
 
@@ -5171,13 +5353,35 @@ function buildBoardView(page){
   return wrap;
 }
 
+function _yooptaPlainText(raw) {
+  if (!raw) return '';
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return raw.replace(/<[^>]*>/g, '');
+    const keys = Object.keys(obj);
+    if (!keys.length || !obj[keys[0]]?.value) return raw.replace(/<[^>]*>/g, '');
+    const extractText = (node) => {
+      if (typeof node.text === 'string') return node.text;
+      if (Array.isArray(node.children)) return node.children.map(extractText).join('');
+      return '';
+    };
+    return keys
+      .sort((a, b) => (obj[a].meta?.order ?? 0) - (obj[b].meta?.order ?? 0))
+      .map(k => (obj[k].value || []).map(extractText).join(''))
+      .join(' ').replace(/\s+/g, ' ').trim();
+  } catch (_) {
+    return raw.replace(/<[^>]*>/g, '');
+  }
+}
+
 function buildKCard(task, pageId, status){
   const st=STATUSES.find(s=>s.id===task.status)||STATUSES[0];
   const pr=PRIORITIES.find(p=>p.id===(task.priority||'none'))||PRIORITIES[0];
   const card=document.createElement('div');
   card.className='kcard';card.draggable=true;
   card.dataset.taskId=task.id;card.dataset.pageId=pageId;card.dataset.status=status;
-  const desc=task.description?`<div class="kcard-desc">${task.description.replace(/<[^>]*>/g,'').slice(0,80)}${task.description.length>80?'…':''}</div>`:'';
+  const descText=_yooptaPlainText(task.description);
+  const desc=descText?`<div class="kcard-desc">${descText.slice(0,80).replace(/&/g,'&amp;').replace(/</g,'&lt;')}${descText.length>80?'…':''}</div>`:'';
   const date=new Date(task.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const prBadge=pr.id!=='none'?`<span class="priority-badge ${pr.cls}" style="font-size:10px">${pr.icon} ${pr.label}</span>`:'';
   card.innerHTML=`
@@ -5294,12 +5498,25 @@ function notesDeleteTask(pageId, taskId){
 }
 
 /* ── CARD MODAL ──────────────────────────────────────────────────── */
+let _cmExpanded = false;
+
+function _cmSaveProps(){
+  if(!_editingCard)return;
+  _editingCard.title   = document.getElementById('cm-title').value;
+  _editingCard.status  = document.getElementById('cm-status-val').dataset.statusId||'not-started';
+  _editingCard.priority= document.getElementById('cm-priority-val').dataset.priorityId||'none';
+  _editingCard.icon    = document.getElementById('cm-icon').textContent;
+  _editingCard.updatedAt = Date.now();
+  notesSave();
+}
+
 function openCardModal(e, pageId, taskId){
   if(e)e.stopPropagation();
   const page=_notes.pages.find(p=>p.id===pageId);
   const task=page?.tasks.find(t=>t.id===taskId);
   if(!task)return;
-  _editingCard=task;_editingPageId=pageId;
+  _editingCard=task; _editingPageId=pageId;
+
   const st=STATUSES.find(s=>s.id===task.status)||STATUSES[0];
   const pr=PRIORITIES.find(p=>p.id===(task.priority||'none'))||PRIORITIES[0];
   document.getElementById('cm-icon').textContent=task.icon||'📝';
@@ -5309,49 +5526,69 @@ function openCardModal(e, pageId, taskId){
   document.getElementById('cm-priority-val').innerHTML=`<span class="priority-badge ${pr.cls}">${pr.icon} ${pr.label}</span>`;
   document.getElementById('cm-priority-val').dataset.priorityId=task.priority||'none';
   document.getElementById('cm-created').textContent=new Date(task.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  
-  const cmEditor = document.getElementById('cm-editor');
-  cmEditor.innerHTML=task.description||'';
-  
-  // Attach Slash and Mention listeners to the card editor!
-  if(!cmEditor.dataset.hasListeners) {
-    cmEditor.addEventListener('keyup', e => {
-      checkSlashMenu(e, cmEditor);
-      checkMentionMenu(e, cmEditor);
-    });
-    cmEditor.addEventListener('keydown', e => docEditorKey(e, cmEditor, null));
-    cmEditor.dataset.hasListeners = "true";
-  }
-  
+
+  // Reset expand state
+  _cmExpanded = false;
+  document.querySelector('.card-modal').classList.remove('cm-expanded');
+  document.getElementById('cm-expand-btn').textContent = '⤢';
+
+  // Mount Yoopta editor
+  const container = document.getElementById('cm-yoopta');
+  _injectBNScript();
+  const doMount = () => {
+    if(window._BN){
+      window._BN.mount(container, task.description || '', (jsonStr) => {
+        if(_editingCard){ _editingCard.description=jsonStr; _editingCard.updatedAt=Date.now(); notesSave(); }
+      });
+    } else {
+      setTimeout(doMount, 80);
+    }
+  };
+  // Unmount any previous instance first
+  if(window._BN) window._BN.unmount(container);
+  setTimeout(doMount, 0);
+
+  // Auto-save title/props on change
+  document.getElementById('cm-title').oninput = _cmSaveProps;
+
   document.getElementById('card-modal-mask').classList.add('open');
-  setTimeout(()=>document.getElementById('cm-title').focus(),100);
+  setTimeout(()=>document.getElementById('cm-title').focus(),120);
 }
 
 function closeCardModal(e){
   if(e&&e.target.id!=='card-modal-mask')return;
+  _cmSaveProps();
+  const container = document.getElementById('cm-yoopta');
+  if(window._BN) window._BN.unmount(container);
   document.getElementById('card-modal-mask').classList.remove('open');
-  closeStatusPicker();closeIconPickerEl();
-  _editingCard=null;_editingPageId=null;
+  document.querySelector('.card-modal').classList.remove('cm-expanded');
+  _cmExpanded = false;
+  closeStatusPicker(); closeIconPickerEl();
+  _editingCard=null; _editingPageId=null;
+  renderNotesMain();
 }
 
 function saveCardModal(){
-  if(!_editingCard)return;
-  _editingCard.title=document.getElementById('cm-title').value;
-  _editingCard.status=document.getElementById('cm-status-val').dataset.statusId||'not-started';
-  _editingCard.priority=document.getElementById('cm-priority-val').dataset.priorityId||'none';
-  _editingCard.description=document.getElementById('cm-editor').innerHTML;
-  _editingCard.icon=document.getElementById('cm-icon').textContent;
-  _editingCard.updatedAt=Date.now();
-  notesSave();
-  document.getElementById('card-modal-mask').classList.remove('open');
-  renderNotesMain();
+  closeCardModal();
+}
+
+function toggleCardExpand(){
+  _cmExpanded = !_cmExpanded;
+  const modal = document.querySelector('.card-modal');
+  const btn   = document.getElementById('cm-expand-btn');
+  modal.classList.toggle('cm-expanded', _cmExpanded);
+  btn.textContent = _cmExpanded ? '⤡' : '⤢';
 }
 
 function deleteCurrentCard(){
   if(!_editingCard||!_editingPageId)return;
+  const container = document.getElementById('cm-yoopta');
+  if(window._BN) window._BN.unmount(container);
   notesDeleteTask(_editingPageId,_editingCard.id);
   document.getElementById('card-modal-mask').classList.remove('open');
-  _editingCard=null;_editingPageId=null;
+  document.querySelector('.card-modal').classList.remove('cm-expanded');
+  _cmExpanded = false;
+  _editingCard=null; _editingPageId=null;
 }
 
 /* ── STATUS PICKER ───────────────────────────────────────────────── */
@@ -6997,14 +7234,78 @@ let _nameTags = JSON.parse(localStorage.getItem('embr_tags')) || [];
 let _tagSavedSelection = null; 
 let _editingTagId = null;
 
-// THE FIX: Global Event Listener for Pills (Survives Refreshes!)
+// ── Name Tag Hint tooltip ─────────────────────────────────────────────────────
+let _hintTagId = null;
+
+function _showTagHint(pill, tagId) {
+  const tag = _nameTags.find(t => t.id === tagId);
+  if (!tag) return;
+  _hintTagId = tagId;
+
+  const labelEl = document.getElementById('tag-hint-status-label');
+  const nameEl  = document.getElementById('tag-hint-name');
+  const valEl   = document.getElementById('tag-hint-val');
+  const hint    = document.getElementById('tag-hint');
+
+  const statusMap = { safe: '🟢 Safe / Known', spam: '🔴 Spam / Malicious', neutral: '⚪ Neutral' };
+  labelEl.textContent = statusMap[tag.status] || '🏷️ Name Tag';
+  nameEl.textContent  = tag.name;
+  valEl.textContent   = tag.val;
+
+  // Position above the pill
+  const rect = pill.getBoundingClientRect();
+  hint.style.left = Math.min(rect.left, window.innerWidth - 340) + 'px';
+  const hintHeight = 130; // approx
+  const spaceAbove = rect.top;
+  if (spaceAbove > hintHeight + 8) {
+    hint.style.top    = (rect.top - hintHeight - 8) + 'px';
+    hint.style.bottom = 'auto';
+  } else {
+    hint.style.top    = (rect.bottom + 8) + 'px';
+    hint.style.bottom = 'auto';
+  }
+
+  hint.classList.add('open');
+}
+
+function _closeTagHint() {
+  document.getElementById('tag-hint').classList.remove('open');
+  _hintTagId = null;
+}
+
+function _copyTagHintVal() {
+  if (!_hintTagId) return;
+  const tag = _nameTags.find(t => t.id === _hintTagId);
+  if (tag) navigator.clipboard.writeText(tag.val).then(() => {
+    if (typeof toast === 'function') toast('Copied!', 'ok');
+  });
+}
+
+function _editTagFromHint() {
+  const id = _hintTagId;
+  _closeTagHint();
+  if (id) openTagModal(id);
+}
+
+// Close hint when clicking outside
+document.addEventListener('mousedown', function(e) {
+  const hint = document.getElementById('tag-hint');
+  if (hint.classList.contains('open') && !hint.contains(e.target) && !e.target.closest('.addr-pill')) {
+    _closeTagHint();
+  }
+});
+
+// Global Event Listener for Pills — shows hint first
 document.addEventListener('mousedown', function(e) {
   const pill = e.target.closest('.addr-pill');
   if (pill) {
     e.preventDefault(); // Stop editor from moving the cursor
     e.stopPropagation(); // Stop editor from capturing click
     const tagId = pill.getAttribute('data-tag-id');
-    if (tagId) openTagModal(tagId);
+    if (!tagId) return;
+    // If hint already open for this pill, close it (toggle)
+    if (_hintTagId === tagId) { _closeTagHint(); return; }
+    _showTagHint(pill, tagId);
   }
 });
 
@@ -7154,16 +7455,25 @@ function saveNameTag() {
     sel.addRange(_tagSavedSelection);
   }
 
-  // 5. Force Auto-Save
-  setTimeout(() => {
-    const page = _notes.pages.find(p => p.id === _curPageId);
-    const docEditor = document.querySelector('.doc-editor');
-    if(page && docEditor) { page.content = docEditor.innerHTML; notesSave(); }
-  }, 50);
+  // 5. Force Auto-Save (BlockNote auto-syncs; just persist current state)
+  setTimeout(() => { notesSave(); }, 50);
 
   closeTagModal();
 }
 
 </script>
+
+<!-- Name Tag Hint Tooltip -->
+<div id="tag-hint">
+  <div class="tag-hint-label" id="tag-hint-status-label">Name Tag</div>
+  <div class="tag-hint-name" id="tag-hint-name"></div>
+  <div class="tag-hint-val" id="tag-hint-val"></div>
+  <div class="tag-hint-row">
+    <button class="tag-hint-btn" onclick="_copyTagHintVal()">Copy</button>
+    <button class="tag-hint-btn primary" onclick="_editTagFromHint()">Edit</button>
+  </div>
+</div>
+
+<!-- Yoopta bundle is injected lazily on first doc open (libs/yoopta.bundle.js) -->
 </body>
 </html>
