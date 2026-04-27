@@ -1921,6 +1921,24 @@ select{cursor:pointer;font-family:var(--ui);}
 .yoopta-todo-list-checkbox--unchecked { border-color: var(--border2) !important; }
 .yoopta-todo-list-content--checked { opacity: .5; text-decoration: line-through; }
 
+/* ── Mobile Yoopta fixes ── */
+/* Ensure cursor (caret) is always visible on iOS/Android */
+.bn-embr-container .yoopta-editor [contenteditable],
+.cm-yoopta .yoopta-editor [contenteditable] {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  caret-color: var(--accent) !important;
+}
+/* Each block needs minimum height so cursor doesn't get stuck in a zero-height element */
+.yoopta-editor [data-slate-node="element"] { min-height: 1.4em; }
+/* Mobile slash panel overlay backdrop */
+@media (max-width: 768px) {
+  /* Push action menu above keyboard — prefer placement above cursor */
+  .yoopta-action-menu-list-content { max-height: 45vh !important; overflow-y: auto !important; }
+  /* Keep mobile toolbar above the editor sticky bar */
+  .yoopta-toolbar-root { z-index: 9990 !important; }
+}
+
 /* ── Name Tag action menu item ── */
 .yoopta-name-tag-title { color: var(--text2) !important; }
 .yoopta-name-tag-desc  { color: var(--text3) !important; }
@@ -6882,12 +6900,8 @@ function applyMention(page, editor) {
 }
 
 /* ── MENTION CLICK DELEGATION ── */
-document.addEventListener('click', e => {
-  const pill = e.target.closest('.mention-link[data-page-id]');
-  if (!pill) return;
-  const pageId = pill.dataset.pageId;
+function _navigateToPage(pageId) {
   if (!pageId) return;
-  // Close card modal if open before navigating
   const cardModal = document.getElementById('card-modal-mask');
   if (cardModal?.classList.contains('open')) {
     cardModal.classList.remove('open');
@@ -6895,6 +6909,23 @@ document.addEventListener('click', e => {
   }
   showTab('notes');
   notesOpenPage(pageId);
+}
+
+// Old contenteditable mention pills
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.mention-link[data-page-id]');
+  if (!pill) return;
+  _navigateToPage(pill.dataset.pageId);
+});
+
+// Yoopta mention links (href="embr://page/{id}") — intercept before browser handles them
+document.addEventListener('click', e => {
+  const link = e.target.closest('a.yoopta-link');
+  if (!link) return;
+  const href = link.getAttribute('href') || '';
+  if (!href.startsWith('embr://page/')) return;
+  e.preventDefault();
+  _navigateToPage(href.replace('embr://page/', ''));
 });
 
 /* ── GITHUB GIST WORKSPACE SYNC ── */
